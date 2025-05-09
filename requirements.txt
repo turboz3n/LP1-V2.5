@@ -1,0 +1,12 @@
+openai
+transformers
+torch
+tinydb
+psutil
+sentence-transformers
+requests
+PyPDF2
+python-docx
+openpyxl
+Pillow
+aioconsole

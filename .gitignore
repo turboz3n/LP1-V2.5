@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+venv/
+.env
+.env.local
+lp1/data/
+*.log
+*.patch
+*.swp
+.DS_Store
+.idea/
+.vscode/
+lp1/tests/__pycache__/
