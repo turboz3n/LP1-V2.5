@@ -21,7 +21,7 @@ def clean_text(text: str) -> list:
     sentences = re.split(r'[.!?]\s+', text)
     return [s.strip() for s in sentences if len(s.strip()) > 10]
 
-def save_knowledge(topic: str, sentences: list, vectors: np.ndarray):
+def save_knowledge(topic, sentences, vectors):
     os.makedirs(os.path.dirname(STORE_PATH), exist_ok=True)
     if os.path.exists(STORE_PATH):
         with open(STORE_PATH, "r") as f:
