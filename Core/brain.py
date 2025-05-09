@@ -1,12 +1,14 @@
 # Core/brain.py
 from openai import OpenAI
+from dotenv import load_dotenv
+load_dotenv()
 from Core.memory import Memory
 import re
 from Skills import knowledge_ingestor
 import json
 import os
 
-client = OpenAI()
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 class Brain:
     def __init__(self):
