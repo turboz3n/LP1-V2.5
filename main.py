@@ -1,7 +1,7 @@
 import os
 import torch
 from Core.skill_loader import load_skills
-from Core.brain import brain
+from Core.brain import Brain
 
 if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
