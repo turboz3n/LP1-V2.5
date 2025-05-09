@@ -5,7 +5,7 @@ import traceback
 
 def load_skills():
     skills = {}
-    skills_dir = os.path.join(os.path.dirname(__file__), '../skills')
+    skills_dir = os.path.join(os.path.dirname(__file__), '../Skills')
     sys.path.insert(0, os.path.abspath(skills_dir))
 
     for filename in os.listdir(skills_dir):
