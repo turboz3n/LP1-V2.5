@@ -16,7 +16,7 @@ if __name__ == "__main__":
             if user_input.lower() in ["exit", "quit"]:
                 print("Exiting...")
                 break
-            response = brain.handle_input(user_input)
+            response = Brain.handle_input(user_input)
             print(f"LP1: {response}")
         except KeyboardInterrupt:
             print("\nSession interrupted by user.")
