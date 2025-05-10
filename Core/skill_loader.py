@@ -14,6 +14,7 @@ def load_skills():
             module_name = filename[:-3]
             try:
                 # Dynamically import the module
+                print(f"[LP1] Importing module: {module_name}")
                 module = importlib.import_module(module_name)
 
                 # Iterate through all attributes in the module
@@ -22,6 +23,7 @@ def load_skills():
 
                     # Check if the attribute is a class and a subclass of Skill
                     if isinstance(attr, type) and issubclass(attr, Skill) and attr is not Skill:
+                        print(f"[LP1] Found skill class: {attr_name}")
                         instance = attr()  # Instantiate the skill
                         normalized_name = module_name.lower().replace(" ", "_").replace("-", "_")
                         skills[normalized_name] = instance
@@ -30,4 +32,5 @@ def load_skills():
             except Exception as e:
                 print(f"[LP1] Failed to load {filename}: {e}")
 
+    print(f"[LP1] Loaded skills: {list(skills.keys())}")
     return skills
