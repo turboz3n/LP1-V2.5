@@ -222,6 +222,8 @@ class Brain:
                     {"role": "user", "content": f"Perform the following action: {action}. Context: {user_input}"}
                 ]
             ).choices[0].message.content.strip()
+            # Log the result of the action
+            self.memory.add_task(f"Completed action: {action} - {response}")
             return response
         except Exception as e:
             print(f"[Dynamic Fallback Error] {e}")
@@ -247,7 +249,7 @@ class Brain:
         # Handle the directive based on its intent
         if directive["intent"] == "chat":
             if "who are you" in user_input.lower() or "what can you do" in user_input.lower():
-                # Respond with LP1's self-description and capabilities
+                # Respond with LP1's self-description
                 response = self.describe_capabilities()
             elif "what skills do you have" in user_input.lower() or "list your skills" in user_input.lower():
                 # Respond with a summary of LP1's skills
