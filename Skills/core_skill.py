@@ -2,10 +2,10 @@ from Core.skill import Skill
 
 
 class Core_skill(Skill):
+    """"""
     def describe(self):
         return "Core skill skill"
 
-    def handle(self, *args, **kwargs):
 
         from openai import OpenAI
 
@@ -36,3 +36,6 @@ class Core_skill(Skill):
 
         def register():
             return { "default": handle }
+def handle(self, user_input, context):
+        """Provides core reasoning or fallback responses when no other skill matches."""
+        return "I'm handling this as a core reasoning task, but no specific action was defined yet."
