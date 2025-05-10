@@ -2,10 +2,10 @@ from Core.skill import Skill
 
 
 class Full_retrain(Skill):
+    """"""
     def describe(self):
         return "Full retrain skill"
 
-    def handle(self, *args, **kwargs):
 
         from lp1.core.skill import Skill
         from typing import Dict, Any
@@ -28,3 +28,6 @@ class Full_retrain(Skill):
                     "[Simulated] All logs saved. Dataset prep started.\n"
                     "Training job enqueued. Will monitor and notify upon completion."
                 )
+def handle(self, user_input, context):
+        """Simulates a full retraining pass or hard reset of LP1 memory/state."""
+        return "Initiating full retraining simulation... Memory and context cleared."
