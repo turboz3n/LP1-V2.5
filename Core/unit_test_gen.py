@@ -25,7 +25,7 @@ def generate_tests(skill_path: str) -> str:
             {"role": "user", "content": f"Generate pytest-compatible unit tests for this skill:\n{source}"}
         ]
 
-        response = openai.ChatCompletion.create(model="gpt-4", messages=messages)
+        response = openai.client.chat.completions.create(model="gpt-4", messages=messages)
         test_code = response.choices[0].message["content"].strip()
 
         # Determine the test file path

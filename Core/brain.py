@@ -71,7 +71,7 @@ class Brain:
         Input: {text}
         """
         try:
-            response = self.client.ChatCompletion.create(
+            response = self.client.client.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You classify user directives."},
@@ -189,7 +189,7 @@ class {skill_name.capitalize()}Skill(Skill):
                 self.chat_mode = True
             else:
                 # Continue the conversation naturally
-                response = self.client.ChatCompletion.create(
+                response = self.client.client.chat.completions.create(
                     model="gpt-4",
                     messages=[
                         {"role": "system", "content": "You are a helpful assistant."},

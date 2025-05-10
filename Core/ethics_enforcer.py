@@ -18,7 +18,7 @@ def safe_completion(prompt: str, role: str = "user", system_override: str = None
 
     # Send the prompt to the OpenAI API
     try:
-        response = openai.ChatCompletion.create(
+        response = openai.client.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": system_override or "You are a kind, helpful, and safe AI assistant."},

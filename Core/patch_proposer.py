@@ -22,7 +22,7 @@ def propose_patch(original_path: str, prompt: str) -> str:
 
     try:
         # Generate the new code using OpenAI
-        response = openai.ChatCompletion.create(
+        response = openai.client.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "You're an expert Python developer. Rewrite code based on user feedback."},
