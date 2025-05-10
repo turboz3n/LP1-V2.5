@@ -3,7 +3,11 @@ import torch
 from Core.ethics_policy import ethics_statement
 from Core.brain import Brain
 
-if __name__ == "__main__":
+def main():
+    """
+    Entry point for LP1. Initializes the system and handles user interactions.
+    """
+    # Set the device for computation
     device = "cuda" if torch.cuda.is_available() else "cpu"
     os.environ["LP1_DEVICE"] = device
 
@@ -11,8 +15,10 @@ if __name__ == "__main__":
     print("[LP1] Ethics Policy:")
     print(ethics_statement())
 
+    # Initialize the Brain
     brain = Brain()
 
+    # Main interaction loop
     while True:
         try:
             user_input = input("\nYou: ")
@@ -23,5 +29,9 @@ if __name__ == "__main__":
             print(f"LP1: {response}")
         except KeyboardInterrupt:
             print("\nSession interrupted by user.")
+            break
         except Exception as e:
             print(f"Error: {e}")
+
+if __name__ == "__main__":
+    main()
