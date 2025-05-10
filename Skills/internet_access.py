@@ -48,13 +48,13 @@ class InternetAccessSkill(Skill):
 
                 # Step 4: Summarize with OpenAI
                 prompt = f"Summarize this for a beginner:\n{text[:2000]}"
-                summary = self.client.chat.completions.create(  # Use the client object
+                summary = self.client.chat.completions.create(
                     model="gpt-4",
                     messages=[
                         {"role": "system", "content": "You are a helpful assistant."},
                         {"role": "user", "content": prompt},
                     ]
-                ).choices[0].message["content"]
+                ).choices[0].message.content.strip()
 
                 summaries.append(f"**{url}**\n{summary.strip()}\n")
             except Exception as e:

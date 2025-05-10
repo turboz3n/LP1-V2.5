@@ -31,14 +31,13 @@ class CodeSummarizerSkill(Skill):
                 f"\n\n{source_code}\n\nReply with a short explanation of what it does."
             )
 
-            response = self.client.chat.completions.create(  # Use the client object
+            response = self.client.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are a code summarization expert."},
                     {"role": "user", "content": prompt}
                 ]
             )
-
             return response.choices[0].message.content.strip()
         except Exception as e:
             return f"[Summarizer Error] {e}"

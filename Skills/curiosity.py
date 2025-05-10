@@ -25,14 +25,13 @@ class CuriositySkill(Skill):
             User input: {user_input}
             """
 
-            response = self.client.chat.completions.create(  # Use the client object
+            response = self.client.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You're an AI explorer. Help the user understand or expand ideas."},
                     {"role": "user", "content": prompt.strip()}
                 ]
             )
-
             return response.choices[0].message.content.strip()
         except Exception as e:
             return f"Error in curiosity skill: {e}"

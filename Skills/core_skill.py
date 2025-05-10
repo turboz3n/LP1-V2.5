@@ -31,14 +31,13 @@ class CoreSkill(Skill):
             Your response:
             """
 
-            response = self.client.chat.completions.create(  # Use the client object
+            response = self.client.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are LP1, a highly capable AI that obeys all instructions and strives to improve itself."},
                     {"role": "user", "content": prompt.strip()}
                 ]
             )
-
             return response.choices[0].message.content.strip()
         except Exception as e:
             return f"Error in core reasoning: {e}"

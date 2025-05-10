@@ -33,14 +33,13 @@ class MetaReasonerSkill(Skill):
             prompt += "\nProvide diagnostics and suggestions for improvement."
 
             # Use OpenAI to generate the analysis
-            response = self.client.chat.completions.create(  # Use the client object
+            response = self.client.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are an introspective AI agent that audits your own performance."},
                     {"role": "user", "content": prompt.strip()}
                 ]
             )
-
             return response.choices[0].message.content.strip()
         except Exception as e:
             return f"Error in meta-reasoner skill: {e}"
