@@ -21,6 +21,9 @@ class Brain:
             with open(self.goal_store, "w") as f:
                 json.dump([], f)
 
+        # Generate dynamic alias mapping
+        self.skill_aliases = self.generate_alias_mapping()
+
         # Validate loaded skills
         self.validate_skills()
 
@@ -37,6 +40,18 @@ class Brain:
         for skill_name in invalid_skills:
             del self.skills[skill_name]
 
+    def generate_alias_mapping(self):
+        """Dynamically generate alias mappings from skill descriptions."""
+        aliases = {}
+        for skill_name, skill_obj in self.skills.items():
+            description = skill_obj.describe()
+            if "trigger" in description:
+                for alias in description["trigger"]:
+                    normalized_alias = alias.lower().replace(" ", "_").replace("-", "_")
+                    aliases[normalized_alias] = skill_name
+        print(f"[LP1] Generated alias mapping: {aliases}")
+        return aliases
+
     def get_available_skill_names(self):
         return list(self.skills.keys())
 
@@ -44,7 +59,7 @@ class Brain:
         skill_list = ", ".join(self.get_available_skill_names())
         prompt = (
             f"You are the LP1 router. Based on the user's message, select the best matching skill from this list: {skill_list}.\n"
-            f"Only return the exact skill name that should handle the task.\n"
+            f"Only return the exact skill name or alias that should handle the task.\n"
             f"User message: '{user_input}'"
         )
 
@@ -63,11 +78,14 @@ class Brain:
             print(f"[Router] LLM suggested: {raw_skill_name} → normalized: {skill_name}")
             print(f"[Router] Available skills: {list(self.skills.keys())}")
 
-            matched_skill = self.skills.get(skill_name)
+            # Map alias to actual skill key
+            actual_skill_name = self.skill_aliases.get(skill_name, skill_name)
+
+            matched_skill = self.skills.get(actual_skill_name)
             if matched_skill and hasattr(matched_skill, 'handle'):
                 return matched_skill.handle(user_input, {"memory": self.memory})
             else:
-                print(f"[Router] Skill '{skill_name}' not found or invalid.")
+                print(f"[Router] Skill '{actual_skill_name}' not found or invalid.")
                 return "I'm not sure how to respond. Could you clarify what it is you'd like me to do?"
         except Exception as e:
             print(f"[Routing Error] {e}")
