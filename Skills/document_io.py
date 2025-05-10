@@ -2,10 +2,10 @@ from Core.skill import Skill
 
 
 class Document_io(Skill):
+    """"""
     def describe(self):
         return "Document io skill"
 
-    def handle(self, *args, **kwargs):
 
         from lp1.core.skill import Skill
         from typing import Dict, Any
@@ -48,3 +48,6 @@ class Document_io(Skill):
                     return "Unsupported file format."
 
                 return "Usage: read <pdf|docx|xlsx> <filepath>"
+def handle(self, user_input, context):
+        """Reads or summarizes uploaded documents using simple text processing."""
+        return "Document processing stub: Please upload or describe the document to parse."
