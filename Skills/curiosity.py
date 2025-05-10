@@ -1,6 +1,6 @@
 from Core.skill import Skill
 from typing import Dict, Any
-import openai
+from openai import OpenAI  # Import the OpenAI class
 import os
 
 
@@ -8,7 +8,7 @@ class CuriositySkill(Skill):
     """Skill for exploring ideas and generating thought-provoking questions."""
 
     def __init__(self):
-        openai.api_key = os.getenv("OPENAI_API_KEY")
+        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))  # Initialize the OpenAI client
 
     def describe(self) -> Dict[str, Any]:
         return {
@@ -25,7 +25,7 @@ class CuriositySkill(Skill):
             User input: {user_input}
             """
 
-            response = openai.client.chat.completions.create(
+            response = self.client.chat.completions.create(  # Use the client object
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You're an AI explorer. Help the user understand or expand ideas."},

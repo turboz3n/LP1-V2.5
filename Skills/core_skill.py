@@ -1,6 +1,6 @@
 from Core.skill import Skill
 from typing import Dict, Any
-import openai
+from openai import OpenAI  # Import the OpenAI class
 import os
 
 
@@ -8,7 +8,7 @@ class CoreSkill(Skill):
     """Core skill for handling general reasoning and fallback responses."""
 
     def __init__(self):
-        openai.api_key = os.getenv("OPENAI_API_KEY")
+        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))  # Initialize the OpenAI client
 
     def describe(self) -> Dict[str, Any]:
         return {
@@ -31,7 +31,7 @@ class CoreSkill(Skill):
             Your response:
             """
 
-            response = openai.client.chat.completions.create(
+            response = self.client.chat.completions.create(  # Use the client object
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are LP1, a highly capable AI that obeys all instructions and strives to improve itself."},

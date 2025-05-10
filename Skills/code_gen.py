@@ -1,5 +1,5 @@
 from Core.skill import Skill
-import openai
+from openai import OpenAI  # Import the OpenAI class
 import os
 from typing import Dict, Any
 
@@ -8,10 +8,7 @@ class CodeGenSkill(Skill):
     """Skill for generating Python code based on user descriptions."""
 
     def __init__(self):
-        self.api_key = os.getenv("OPENAI_API_KEY")
-        if not self.api_key:
-            raise ValueError("OpenAI API key is not set. Please configure the 'OPENAI_API_KEY' environment variable.")
-        openai.api_key = self.api_key
+        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))  # Initialize the OpenAI client
 
     def describe(self) -> Dict[str, Any]:
         return {
@@ -27,7 +24,7 @@ class CodeGenSkill(Skill):
 
         try:
             prompt = f"Generate Python code for the following request:\n{user_input}"
-            response = openai.client.chat.completions.create(
+            response = self.client.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are a helpful and knowledgeable AI assistant."},

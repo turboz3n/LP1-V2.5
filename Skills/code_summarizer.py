@@ -1,14 +1,14 @@
 from Core.skill import Skill
 import os
 from typing import Dict, Any
-import openai
+from openai import OpenAI  # Import the OpenAI class
 
 
 class CodeSummarizerSkill(Skill):
     """Skill for summarizing Python code files."""
 
     def __init__(self):
-        openai.api_key = os.getenv("OPENAI_API_KEY")
+        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))  # Initialize the OpenAI client
 
     def describe(self) -> Dict[str, Any]:
         return {
@@ -31,7 +31,7 @@ class CodeSummarizerSkill(Skill):
                 f"\n\n{source_code}\n\nReply with a short explanation of what it does."
             )
 
-            response = openai.client.chat.completions.create(
+            response = self.client.chat.completions.create(  # Use the client object
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are a code summarization expert."},

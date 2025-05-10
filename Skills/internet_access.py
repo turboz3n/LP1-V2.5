@@ -1,12 +1,16 @@
 from Core.skill import Skill
 import requests
 from bs4 import BeautifulSoup
-import openai
+from openai import OpenAI  # Import the OpenAI class
 import re
+import os
 
 
 class InternetAccessSkill(Skill):
     """Skill for searching, retrieving, and summarizing live web content."""
+
+    def __init__(self):
+        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))  # Initialize the OpenAI client
 
     def describe(self):
         return {
@@ -44,7 +48,7 @@ class InternetAccessSkill(Skill):
 
                 # Step 4: Summarize with OpenAI
                 prompt = f"Summarize this for a beginner:\n{text[:2000]}"
-                summary = openai.client.chat.completions.create(
+                summary = self.client.chat.completions.create(  # Use the client object
                     model="gpt-4",
                     messages=[
                         {"role": "system", "content": "You are a helpful assistant."},

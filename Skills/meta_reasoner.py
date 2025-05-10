@@ -1,7 +1,7 @@
 from Core.skill import Skill
 from Core.memory import recall_recent
 from typing import Dict, Any
-import openai
+from openai import OpenAI  # Import the OpenAI class
 import os
 
 
@@ -9,7 +9,7 @@ class MetaReasonerSkill(Skill):
     """Skill for introspection and analyzing LP1's past interactions to identify improvements."""
 
     def __init__(self):
-        openai.api_key = os.getenv("OPENAI_API_KEY")
+        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))  # Initialize the OpenAI client
 
     def describe(self) -> Dict[str, Any]:
         return {
@@ -33,7 +33,7 @@ class MetaReasonerSkill(Skill):
             prompt += "\nProvide diagnostics and suggestions for improvement."
 
             # Use OpenAI to generate the analysis
-            response = openai.client.chat.completions.create(
+            response = self.client.chat.completions.create(  # Use the client object
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are an introspective AI agent that audits your own performance."},
