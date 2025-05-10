@@ -15,7 +15,7 @@ if __name__ == "__main__":
 
     print("[LP1] Skills loaded:")
     for skill in brain.skills.values():
-    print(f" - {skill.__class__.__name__}")
+        print(f" - {skill.__class__.__name__}")
 
     while True:
         try:
