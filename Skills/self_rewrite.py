@@ -2,10 +2,10 @@ from Core.skill import Skill
 
 
 class Self_rewrite(Skill):
+    """"""
     def describe(self):
         return "Self rewrite skill"
 
-    def handle(self, *args, **kwargs):
 
         from lp1.core.skill import Skill
         from typing import Dict, Any
@@ -31,3 +31,8 @@ class Self_rewrite(Skill):
                     return "Patch successfully applied to codebase."
                 except subprocess.CalledProcessError as e:
                     return f"Failed to apply patch: {e}"
+def handle(self, user_input, context):
+        """Modifies LP1's own logic or code based on reflective instructions."""
+        if "change" in user_input or "edit" in user_input:
+            return "Preparing to self-modify. Which module should I rewrite?"
+        return "Describe what needs to be rewritten."
