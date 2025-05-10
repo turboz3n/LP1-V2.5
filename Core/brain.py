@@ -10,6 +10,42 @@ from Core.ethics_enforcer import safe_completion
 from openai import OpenAI  # Import the OpenAI class
 from Skills import knowledge_ingestor
 
+class Memory:
+    def __init__(self):
+        self.logs = []  # Stores conversation logs
+        self.task_history = []  # Stores completed tasks
+
+    def log(self, role, message):
+        """
+        Logs a message from a specific role (e.g., 'user', 'lp1').
+
+        Args:
+            role (str): The role of the message sender.
+            message (str): The message content.
+        """
+        self.logs.append({"role": role, "message": message})
+
+    def add_task(self, task):
+        """
+        Adds a completed task to the task history.
+
+        Args:
+            task (str): A description of the completed task.
+        """
+        self.task_history.append(task)
+
+    def get_recent_tasks(self, count=5):
+        """
+        Retrieves the most recent tasks from the task history.
+
+        Args:
+            count (int): The number of recent tasks to retrieve.
+
+        Returns:
+            list: A list of the most recent tasks.
+        """
+        return self.task_history[-count:]
+
 class Brain:
     def __init__(self):
         self.skills = load_skills()
