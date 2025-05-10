@@ -133,7 +133,7 @@ Input: {text}
                 self.memory.log("rule", user_input)
                 response = f"Understood. I will enforce: '{user_input}'"
 
-            elif directive["action"] == "trigger_skill":
+            elif directive["intent"] == "trigger_skill":
                 try:
                     routed = self.route_with_llm(user_input)
                     if routed in self.skills:
