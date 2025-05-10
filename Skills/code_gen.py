@@ -2,10 +2,10 @@ from Core.skill import Skill
 
 
 class Code_gen(Skill):
+    """"""
     def describe(self):
         return "Code gen skill"
 
-    def handle(self, *args, **kwargs):
 
         import openai
         import os
@@ -32,3 +32,13 @@ class Code_gen(Skill):
             import sys
             user_input = " ".join(sys.argv[1:])
             print(run(user_input))
+def handle(self, user_input, context):
+        """Generates Python code based on a user description."""
+        import openai
+        client = openai.OpenAI()
+        prompt = f"Generate Python code for the following request:\n{user_input}"
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return response.choices[0].message.content
