@@ -10,15 +10,16 @@ def load_skills():
     print("[LP1] Scanning Skills folder...")
     for filename in os.listdir(skill_dir):
         if filename.endswith(".py") and filename != "__init__.py":
-            skill_name = filename[:-3]  # remove .py
+            module_name = filename[:-3]
             try:
                 if module_name in sys.modules:
                     del sys.modules[module_name]
-                module = importlib.import_module(skill_name)
+
+                module = importlib.import_module(module_name)
                 if hasattr(module, "Skill"):
                     instance = module.Skill()
-                    skills[skill_name.lower()] = instance
-                    print(f"[LP1] Loaded: {skill_name}")
+                    skills[module_name.lower()] = instance
+                    print(f"[LP1] Loaded: {module_name}")
                 else:
                     print(f"[LP1] Skipped (no Skill class): {filename}")
             except Exception as e:
