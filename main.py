@@ -1,7 +1,14 @@
 import os
+from dotenv import load_dotenv
 import torch
 from Core.ethics_policy import ethics_statement
 from Core.brain import Brain
+
+# Load environment variables from the .env file
+load_dotenv()
+
+# Access the API key
+api_key = os.getenv("OPENAI_API_KEY")
 
 def main():
     """
