@@ -2,10 +2,10 @@ from Core.skill import Skill
 
 
 class Curiosity(Skill):
+    """"""
     def describe(self):
         return "Curiosity skill"
 
-    def handle(self, *args, **kwargs):
 
         from lp1.core.skill import Skill
         from typing import Dict, Any
@@ -29,3 +29,6 @@ class Curiosity(Skill):
                     ]
                 )
                 return response.choices[0].message.content.strip()
+def handle(self, user_input, context):
+        """Generates thought-provoking follow-up questions based on the conversation."""
+        return "Why do you think that is? What would change if you looked at it from a different perspective?"
