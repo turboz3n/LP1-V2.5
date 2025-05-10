@@ -1,40 +1,32 @@
 from Core.skill import Skill
+from typing import Dict, Any
+import subprocess
+import os
 
 
-class Self_rewrite(Skill):
-    """"""
-    def describe(self):
-        return "Self rewrite skill"
+class SelfRewriteSkill(Skill):
+    """Skill for modifying LP1's own logic or code based on reflective instructions."""
 
+    def describe(self) -> Dict[str, Any]:
+        return {
+            "name": "self_rewrite",
+            "trigger": ["refactor", "improve yourself", "rewrite code", "patch"],
+            "description": "Modifies LP1's own logic or code based on reflective instructions."
+        }
 
-        from lp1.core.skill import Skill
-        from typing import Dict, Any
-        import subprocess, os
+    def handle(self, user_input: str, context: Dict[str, Any]) -> str:
+        """Handles self-modification requests."""
+        if "git" not in user_input:
+            return "To apply changes, please reference a Git diff or patch."
 
-        class SelfRewriteSkill(Skill):
-            def describe(self) -> Dict[str, Any]:
-                return {
-                    "name": "self_rewrite",
-                    "trigger": ["refactor", "improve yourself", "rewrite code", "patch"]
-                }
+        patch_path = "lp1/data/patch.diff"
+        if not os.path.exists(patch_path):
+            return "No patch file found at lp1/data/patch.diff."
 
-            async def handle(self, input_text: str, state: Dict[str, Any]) -> str:
-                if "git" not in input_text:
-                    return "To apply changes, please reference a Git diff or patch."
-
-                patch_path = "lp1/data/patch.diff"
-                if not os.path.exists(patch_path):
-                    return "No patch file found at lp1/data/patch.diff."
-
-                try:
-                    subprocess.run(["git", "apply", patch_path], check=True)
-                    return "Patch successfully applied to codebase."
-                except subprocess.CalledProcessError as e:
-                    return f"Failed to apply patch: {e}"
-def handle(self, user_input, context):
-        """Modifies LP1's own logic or code based on reflective instructions."""
-        if "change" in user_input or "edit" in user_input:
-            return "Preparing to self-modify. Which module should I rewrite?"
-        return "Describe what needs to be rewritten."
-
-module_name = __name__
+        try:
+            subprocess.run(["git", "apply", patch_path], check=True)
+            return "Patch successfully applied to the codebase."
+        except subprocess.CalledProcessError as e:
+            return f"Failed to apply patch: {e}"
+        except Exception as e:
+            return f"An unexpected error occurred: {e}"

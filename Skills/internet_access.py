@@ -4,10 +4,19 @@ from bs4 import BeautifulSoup
 from openai import OpenAI
 import re
 
-class Skill(Skill):
-    """Learns from the internet by searching, retrieving, and summarizing live web content."""
+
+class InternetAccessSkill(Skill):
+    """Skill for searching, retrieving, and summarizing live web content."""
+
+    def describe(self):
+        return {
+            "name": "internet_access",
+            "trigger": ["search", "learn about", "look up", "internet"],
+            "description": "Searches the internet, retrieves content, and summarizes it for the user."
+        }
 
     def handle(self, user_input, context):
+        """Searches the internet and summarizes content based on the user's query."""
         client = OpenAI()
 
         # Step 1: Extract query topic
@@ -21,7 +30,7 @@ class Skill(Skill):
             res = requests.get(f"https://html.duckduckgo.com/html/?q={topic}", headers=headers)
             links = list(set(
                 re.findall(r'<a rel="nofollow" class="result__a" href="(https://[^"]+)', res.text)
-            ))[:3]  # top 3
+            ))[:3]  # top 3 results
         except Exception as e:
             return f"Search failed: {e}"
 
@@ -37,7 +46,7 @@ class Skill(Skill):
                 # Step 4: Summarize with OpenAI
                 prompt = f"Summarize this for a beginner:\n{text[:2000]}"
                 summary = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
+                    model="gpt-4",
                     messages=[
                         {"role": "system", "content": "You are a helpful assistant."},
                         {"role": "user", "content": prompt},
@@ -49,5 +58,3 @@ class Skill(Skill):
                 summaries.append(f"**{url}**\nError fetching/summarizing: {e}\n")
 
         return "\n\n".join(summaries) if summaries else "No usable content found."
-
-module_name = __name__

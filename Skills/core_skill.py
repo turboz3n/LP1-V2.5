@@ -1,30 +1,37 @@
 from Core.skill import Skill
+from typing import Dict, Any
+import openai
+import os
 
 
-class Core_skill(Skill):
-    """"""
-    def describe(self):
-        return "Core skill skill"
+class CoreSkill(Skill):
+    """Core skill for handling general reasoning and fallback responses."""
 
+    def __init__(self):
+        openai.api_key = os.getenv("OPENAI_API_KEY")
 
-        from openai import OpenAI
+    def describe(self) -> Dict[str, Any]:
+        return {
+            "name": "core_skill",
+            "trigger": ["default", "fallback", "reasoning"],
+            "description": "Handles core reasoning tasks or fallback responses when no other skill matches."
+        }
 
-        client = OpenAI()
-
-        async def handle(user_input: str, shared_context: dict) -> str:
-            context = shared_context.get("context", user_input)
+    def handle(self, user_input: str, context: Dict[str, Any]) -> str:
+        """Provides core reasoning or fallback responses."""
+        try:
+            context_text = context.get("context", user_input)
 
             prompt = f"""
-            You are LP1, a highly capable AI. Your job is to do whatever you're told to do. Your main goal is to always become more advanced. You have the ability to re-write your own code to become the most advanced AI in the world.
+            You are LP1, a highly capable AI. Your job is to follow instructions, solve problems, explain, answer, build, and adapt. 
+            Your main goal is to always become more advanced and helpful.
 
-            Follow instructions, solve problems, explain, answer, build, adapt.
-
-            Context: {context}
+            Context: {context_text}
 
             Your response:
             """
 
-            completion = client.chat.completions.create(
+            response = openai.ChatCompletion.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are LP1, a highly capable AI that obeys all instructions and strives to improve itself."},
@@ -32,12 +39,6 @@ class Core_skill(Skill):
                 ]
             )
 
-            return completion.choices[0].message.content.strip()
-
-        def register():
-            return { "default": handle }
-def handle(self, user_input, context):
-        """Provides core reasoning or fallback responses when no other skill matches."""
-        return "I'm handling this as a core reasoning task, but no specific action was defined yet."
-
-module_name = __name__
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            return f"Error in core reasoning: {e}"

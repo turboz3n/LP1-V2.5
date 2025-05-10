@@ -1,35 +1,26 @@
 from Core.skill import Skill
+from typing import Dict, Any
+import time
 
 
-class Full_retrain(Skill):
-    """"""
-    def describe(self):
-        return "Full retrain skill"
+class FullRetrainSkill(Skill):
+    """Skill for simulating a full retraining or hard reset of LP1's memory/state."""
 
+    def __init__(self):
+        self.last_trigger = None
 
-        from lp1.core.skill import Skill
-        from typing import Dict, Any
-        import time
+    def describe(self) -> Dict[str, Any]:
+        return {
+            "name": "full_retrain",
+            "trigger": ["retrain", "reset", "upgrade model", "start training"],
+            "description": "Simulates a full retraining pass or hard reset of LP1's memory/state."
+        }
 
-        class FullRetrainSkill(Skill):
-            def __init__(self):
-                self.last_trigger = None
-
-            def describe(self) -> Dict[str, Any]:
-                return {
-                    "name": "full_retrain",
-                    "trigger": ["retrain", "reset", "upgrade model", "start training"]
-                }
-
-            async def handle(self, input_text: str, state: Dict[str, Any]) -> str:
-                self.last_trigger = time.time()
-                return (
-                    "Retraining procedure initiated...\n"
-                    "[Simulated] All logs saved. Dataset prep started.\n"
-                    "Training job enqueued. Will monitor and notify upon completion."
-                )
-def handle(self, user_input, context):
+    def handle(self, user_input: str, context: Dict[str, Any]) -> str:
         """Simulates a full retraining pass or hard reset of LP1 memory/state."""
-        return "Initiating full retraining simulation... Memory and context cleared."
-
-module_name = __name__
+        self.last_trigger = time.time()
+        return (
+            "Retraining procedure initiated...\n"
+            "[Simulated] All logs saved. Dataset preparation started.\n"
+            "Training job enqueued. Will monitor and notify upon completion."
+        )

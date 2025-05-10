@@ -1,46 +1,33 @@
 from Core.skill import Skill
+import openai
+import os
+from typing import Dict, Any
 
 
-class Code_gen(Skill):
-    """"""
-    def describe(self):
-        return "Code gen skill"
+class CodeGenSkill(Skill):
+    """Skill for generating Python code based on user descriptions."""
 
-
-        import openai
-        import os
-
+    def __init__(self):
         openai.api_key = os.getenv("OPENAI_API_KEY")
 
-        def run(user_input: str, context: str = None):
-            if not context:
-                context = user_input
+    def describe(self) -> Dict[str, Any]:
+        return {
+            "name": "code_gen",
+            "trigger": ["generate code", "write code", "code"],
+            "description": "Generates Python code based on user descriptions."
+        }
 
-            try:
-                response = openai.ChatCompletion.create(
-                    model="gpt-4",
-                    messages=[
-                        {"role": "system", "content": "You are a helpful and knowledgeable AI assistant."},
-                        {"role": "user", "content": context}
-                    ]
-                )
-                return response.choices[0].message.content.strip()
-            except Exception as e:
-                return f"Error generating response: {e}"
-
-        if __name__ == "__main__":
-            import sys
-            user_input = " ".join(sys.argv[1:])
-            print(run(user_input))
-def handle(self, user_input, context):
+    def handle(self, user_input: str, context: Dict[str, Any]) -> str:
         """Generates Python code based on a user description."""
-        import openai
-        client = openai.OpenAI()
-        prompt = f"Generate Python code for the following request:\n{user_input}"
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}]
-        )
-        return response.choices[0].message.content
-
-module_name = __name__
+        try:
+            prompt = f"Generate Python code for the following request:\n{user_input}"
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are a helpful and knowledgeable AI assistant."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            return f"Error generating code: {e}"
