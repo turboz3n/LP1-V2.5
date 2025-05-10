@@ -36,3 +36,5 @@ def handle(self, user_input, context):
         if "change" in user_input or "edit" in user_input:
             return "Preparing to self-modify. Which module should I rewrite?"
         return "Describe what needs to be rewritten."
+
+module_name = __name__

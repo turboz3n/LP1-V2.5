@@ -39,3 +39,5 @@ class Core_skill(Skill):
 def handle(self, user_input, context):
         """Provides core reasoning or fallback responses when no other skill matches."""
         return "I'm handling this as a core reasoning task, but no specific action was defined yet."
+
+module_name = __name__

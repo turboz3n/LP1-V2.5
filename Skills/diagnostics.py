@@ -30,3 +30,5 @@ class Diagnostics(Skill):
 def handle(self, user_input, context):
         """Returns LP1 system health and module status info."""
         return "Diagnostics report: All modules responding. No critical errors. (Stub output)"
+
+module_name = __name__

@@ -42,3 +42,5 @@ def handle(self, user_input, context):
             code = context["context"]["file"]
             return f"Summary of file:\n(Stub) This appears to be {len(code.splitlines())} lines of code."
         return "No code provided to summarize."
+
+module_name = __name__

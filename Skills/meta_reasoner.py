@@ -40,3 +40,5 @@ class Meta_reasoner(Skill):
 def handle(self, user_input, context):
         """Analyzes which skill should be activated when routing is unclear."""
         return "I need to think about which skill fits this task... (Meta-reasoner not yet implemented.)"
+
+module_name = __name__

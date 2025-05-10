@@ -61,3 +61,5 @@ class Knowledge_ingestor(Skill):
 def handle(self, user_input, context):
         """Ingests structured knowledge or domain content for internal reference."""
         return f"Learning from: {user_input}. (Ingest simulation complete.)"
+
+module_name = __name__

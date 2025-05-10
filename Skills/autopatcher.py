@@ -76,3 +76,5 @@ def handle(self, user_input, context):
         if "fix" in user_input or "bug" in user_input:
             return "Analyzing system state and preparing patch... (Autopatcher logic not implemented yet.)"
         return "Please describe what needs to be patched."
+
+module_name = __name__

@@ -51,3 +51,5 @@ class Document_io(Skill):
 def handle(self, user_input, context):
         """Reads or summarizes uploaded documents using simple text processing."""
         return "Document processing stub: Please upload or describe the document to parse."
+
+module_name = __name__

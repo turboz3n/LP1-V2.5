@@ -31,3 +31,5 @@ class Full_retrain(Skill):
 def handle(self, user_input, context):
         """Simulates a full retraining pass or hard reset of LP1 memory/state."""
         return "Initiating full retraining simulation... Memory and context cleared."
+
+module_name = __name__

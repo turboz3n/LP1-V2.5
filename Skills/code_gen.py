@@ -42,3 +42,5 @@ def handle(self, user_input, context):
             messages=[{"role": "user", "content": prompt}]
         )
         return response.choices[0].message.content
+
+module_name = __name__

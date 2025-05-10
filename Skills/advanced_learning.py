@@ -35,3 +35,5 @@ def handle(self, user_input, context):
         """Enhances LP1's internal models or capabilities via external knowledge ingestion."""
         topic = user_input.replace("improve", "").replace("learn", "").strip()
         return f"Learning more about {topic}. (Stub: advanced integration coming soon.)"
+
+module_name = __name__

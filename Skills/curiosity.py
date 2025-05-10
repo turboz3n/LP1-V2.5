@@ -32,3 +32,5 @@ class Curiosity(Skill):
 def handle(self, user_input, context):
         """Generates thought-provoking follow-up questions based on the conversation."""
         return "Why do you think that is? What would change if you looked at it from a different perspective?"
+
+module_name = __name__
