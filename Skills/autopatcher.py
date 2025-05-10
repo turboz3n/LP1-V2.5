@@ -86,10 +86,11 @@ class Autopatcher(Skill):
             self.autopatcher.clear()
             return "All pending patches have been cleared."
         elif "propose patch" in user_input:
-            # Example usage: propose patch for a specific file
-            file_path = context.get("file_path", "example.py")
-            new_code = context.get("new_code", "# Example new code")
+            file_path = context.get("file_path")
+            new_code = context.get("new_code")
+            if not file_path or not new_code:
+                return "Please provide both 'file_path' and 'new_code' in the context."
             diff = self.autopatcher.propose_patch(file_path, new_code)
             return f"Patch proposed:\n{diff}"
         else:
-            return "Please describe what needs to be patched or use commands like 'list patches', 'apply patches', or 'propose patch'."
+            return "Invalid command. Use 'list patches', 'apply patches', 'clear patches', or 'propose patch'."
