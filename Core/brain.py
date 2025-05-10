@@ -11,7 +11,7 @@ from Skills import knowledge_ingestor
 
 class Brain:
     def __init__(self):
-        self.skills = load_skills()
+        self.skills = {skill.__class__.__name__.lower(): skill for skill in load_skills()}
         self.context = []
         self.session_context = []
         self.memory = Memory()
