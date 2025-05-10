@@ -2,10 +2,10 @@ from Core.skill import Skill
 
 
 class Advanced_learning(Skill):
+    """"""
     def describe(self):
         return "Advanced learning skill"
 
-    def handle(self, *args, **kwargs):
 
         from lp1.core.skill import Skill
         from typing import Dict, Any
@@ -31,3 +31,7 @@ class Advanced_learning(Skill):
                     return f"Answer: {result['answer']} (score: {result['score']:.2f})"
                 except Exception as e:
                     return f"Error running QA model: {e}"
+def handle(self, user_input, context):
+        """Enhances LP1's internal models or capabilities via external knowledge ingestion."""
+        topic = user_input.replace("improve", "").replace("learn", "").strip()
+        return f"Learning more about {topic}. (Stub: advanced integration coming soon.)"
