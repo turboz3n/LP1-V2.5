@@ -167,6 +167,10 @@ Input: {text}
         return response.choices[0].message.content
 
     def execute_command(self, user_input):
+        routed_skill = self.route_with_llm(user_input)
+        if routed_skill in self.skills:
+            return self.skills[routed_skill].handle(user_input)
+        return "Command acknowledged, but I don't yet have a skill for that action."
         if 'improve' in user_input or 'become smarter' in user_input:
             topic = user_input.split("improve", 1)[-1].strip() or "general intelligence"
             self.memory.log("goal", f"Self-improvement: {topic}")
