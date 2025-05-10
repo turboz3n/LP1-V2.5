@@ -91,40 +91,34 @@ class Brain:
             print(f"[Routing Error] {e}")
             return "An error occurred while routing your request. Please try again."
 
-    def classify_input(self, user_input):
-        user_input = user_input.strip().lower()
-        if user_input.endswith('?') or user_input.startswith(('what', 'who', 'how', 'when', 'why')):
-            return 'question'
-        if user_input.startswith(('i want', 'please', 'can you', 'i need', 'make', 'do', 'create')):
-            return 'command'
-        if user_input.startswith(('suggest', 'maybe', 'could you')):
-            return 'suggestion'
-        return 'unknown'
-
     def classify_directive(self, text: str) -> dict:
         prompt = f"""
 You are a directive classifier for an AI assistant.
 Given this user input, classify it as one of the following:
-- goal → user wants to set a long-term objective
-- rule → user is defining behavioral boundaries
-- trigger_skill → user is asking for an action or task to be performed
-- chat → general conversation
+- goal → user wants to set a long-term objective (e.g., "Learn about neural networks").
+- rule → user is defining behavioral boundaries (e.g., "Never share personal data").
+- trigger_skill → user is asking for an action or task to be performed (e.g., "Improve your knowledge on neural networks").
+- chat → general conversation (e.g., "How are you?").
 
 Respond ONLY with a JSON object with these fields: intent, priority, action.
+- intent: One of "goal", "rule", "trigger_skill", or "chat".
+- priority: One of "low", "medium", or "high".
+- action: A concise description of the action (e.g., "learn_topic", "update_knowledgebase", "respond").
+
 Input: {text}
 """
 
-        response = self.client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You classify user directives."},
-                {"role": "user", "content": prompt}
-            ]
-        )
-
-        print("[Classifier raw output]", response.choices[0].message.content)
-
         try:
+            response = self.client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You classify user directives."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+
+            print("[Classifier raw output]", response.choices[0].message.content)
+
             classification = json.loads(response.choices[0].message.content)
             return classification
         except Exception as e:
@@ -142,55 +136,38 @@ Input: {text}
         self.memory.log("user", user_input)
         self.session_context.append({"user": user_input})
 
-        if any(kw in user_input.lower() for kw in ["learn ", "study ", "become more knowledgeable"]):
-            topic = user_input.lower().split("about")[-1].strip() if "about" in user_input.lower() else user_input.split(" ", 1)[-1]
-            result = knowledge_ingestor.learn_topic(topic)
-            self.memory.log("lp1", result)
-            self.store_goal(f"learn {topic}")
-            self.session_context.append({"lp1": result})
-            return result
+        directive = self.classify_directive(user_input)
 
-        elif re.search(r'(what|give me a).*?(summary|recap|learned).*?(about|on) (.+)', user_input.lower()):
-            match = re.search(r'(about|on) (.+)', user_input.lower())
-            if match:
-                topic = match.group(2).strip()
-                summary = self.memory.query(topic)
-                response = summary if summary else f"I haven't learned anything specific about {topic} yet."
+        if directive["intent"] == "goal":
+            self.memory.log("goal", user_input)
+            self.store_goal(user_input)
+            response = f"Got it. Queued your goal: '{user_input}'. I’ll plan how to achieve it."
+
+        elif directive["intent"] == "rule":
+            self.memory.log("rule", user_input)
+            response = f"Understood. I will enforce: '{user_input}'"
+
+        elif directive["intent"] == "trigger_skill":
+            action = directive["action"]
+            if action in self.skills:
+                try:
+                    response = self.skills[action].handle(user_input)
+                except Exception as e:
+                    response = f"Error executing skill '{action}': {e}"
             else:
-                response = "Could not identify the topic to summarize."
+                # Fallback for unknown actions
+                response = f"I don't have a skill for the action '{action}'. Would you like me to create one?"
 
         else:
-            directive = self.classify_directive(user_input)
-
-            if directive["action"] == "record_and_plan":
-                self.memory.log("goal", user_input)
-                self.store_goal(user_input)
-                response = f"Got it. Queued your goal: '{user_input}'. I’ll plan how to achieve it."
-
-            elif directive["action"] == "record_and_enforce":
-                self.memory.log("rule", user_input)
-                response = f"Understood. I will enforce: '{user_input}'"
-
-            elif directive["intent"] == "trigger_skill":
-                try:
-                    routed = self.route_with_llm(user_input)
-                    if routed in self.skills:
-                        response = self.skills[routed].handle(user_input)
-                    else:
-                        response = f"Skill '{routed}' not found."
-                except Exception as e:
-                    response = f"[Routing Error] {e}"
-
+            intent_type = self.classify_input(user_input)
+            if intent_type == 'question':
+                response = self.respond_to_question(user_input)
+            elif intent_type == 'command':
+                response = self.execute_command(user_input)
+            elif intent_type == 'suggestion':
+                response = self.plan_new_capability(user_input)
             else:
-                intent_type = self.classify_input(user_input)
-                if intent_type == 'question':
-                    response = self.respond_to_question(user_input)
-                elif intent_type == 'command':
-                    response = self.execute_command(user_input)
-                elif intent_type == 'suggestion':
-                    response = self.plan_new_capability(user_input)
-                else:
-                    response = "I'm not sure how to respond. Could you clarify what you'd like me to do?"
+                response = "I'm not sure how to respond. Could you clarify what you'd like me to do?"
 
         self.memory.log("lp1", response)
         self.session_context.append({"lp1": response})
@@ -209,14 +186,6 @@ Input: {text}
         if routed_skill in self.skills:
             return self.skills[routed_skill].handle(user_input)
         return "Command acknowledged, but I don't yet have a skill for that action."
-        if 'improve' in user_input or 'become smarter' in user_input:
-            topic = user_input.split("improve", 1)[-1].strip() or "general intelligence"
-            self.memory.log("goal", f"Self-improvement: {topic}")
-            self.store_goal(f"Self-improvement: {topic}")
-            result = knowledge_ingestor.learn_topic(topic)
-            self.memory.log("lp1", result)
-            return result
-        return "Command acknowledged, but I need more detail on the requested action."
 
     def plan_new_capability(self, user_input):
         return "Planning module stub: This will eventually propose new modules when capabilities are lacking."
