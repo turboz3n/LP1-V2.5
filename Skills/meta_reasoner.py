@@ -2,10 +2,10 @@ from Core.skill import Skill
 
 
 class Meta_reasoner(Skill):
+    """"""
     def describe(self):
         return "Meta reasoner skill"
 
-    def handle(self, *args, **kwargs):
 
         from lp1.core.skill import Skill
         from lp1.core.memory import recall_recent
@@ -37,3 +37,6 @@ class Meta_reasoner(Skill):
                 )
 
                 return response.choices[0].message.content.strip()
+def handle(self, user_input, context):
+        """Analyzes which skill should be activated when routing is unclear."""
+        return "I need to think about which skill fits this task... (Meta-reasoner not yet implemented.)"
