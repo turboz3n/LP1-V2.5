@@ -24,12 +24,12 @@ class Brain:
     def get_available_skill_names(self):
         return list(self.skills.keys())
 
-def route_with_llm(self, user_input: str) -> str:
-    skill_list = ", ".join(self.get_available_skill_names())
-    prompt = (
-        f"You are the LP1 router. Based on the user's message, select the best matching skill from this list: {skill_list}.\n"
-        f"Only return the exact skill name that should handle the task.\n"
-        f"User message: '{user_input}'"
+    def route_with_llm(self, user_input: str) -> str:
+        skill_list = ", ".join(self.get_available_skill_names())
+        prompt = (
+            f"You are the LP1 router. Based on the user's message, select the best matching skill from this list: {skill_list}.\n"
+            f"Only return the exact skill name that should handle the task.\n"
+            f"User message: '{user_input}'"
     )
 
     response = self.client.chat.completions.create(
