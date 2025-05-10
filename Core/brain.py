@@ -21,6 +21,19 @@ class Brain:
             with open(self.goal_store, "w") as f:
                 json.dump([], f)
 
+        # Validate loaded skills
+        self.validate_skills()
+
+    def validate_skills(self):
+        """Ensure all loaded skills have a 'handle' method."""
+        invalid_skills = []
+        for skill_name, skill_obj in self.skills.items():
+            if not hasattr(skill_obj, 'handle') or not callable(skill_obj.handle):
+                print(f"[Error] Skill '{skill_name}' is invalid: Missing 'handle' method.")
+                invalid_skills.append(skill_name)
+        for skill_name in invalid_skills:
+            del self.skills[skill_name]
+
     def get_available_skill_names(self):
         return list(self.skills.keys())
 
@@ -32,26 +45,30 @@ class Brain:
             f"User message: '{user_input}'"
         )
 
-        response = self.client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are an intelligent skill router."},
-                {"role": "user", "content": prompt}
-            ]
-        )
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are an intelligent skill router."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
 
-        raw_skill_name = response.choices[0].message.content.strip()
-        skill_name = raw_skill_name.lower().replace(" ", "_").replace("-", "_")
+            raw_skill_name = response.choices[0].message.content.strip()
+            skill_name = raw_skill_name.lower().replace(" ", "_").replace("-", "_")
 
-        print(f"[Router] LLM suggested: {raw_skill_name} → normalized: {skill_name}")
-        print(f"[Router] Available skills: {list(self.skills.keys())}")
+            print(f"[Router] LLM suggested: {raw_skill_name} → normalized: {skill_name}")
+            print(f"[Router] Available skills: {list(self.skills.keys())}")
 
-        matched_skill = self.skills.get(skill_name)
-        if matched_skill:
-            return matched_skill.handle(user_input, {"memory": self.memory})
-        else:
-            print(f"[Router] Skill '{skill_name}' not found.")
-            return "I'm not sure how to respond. Could you clarify what it is you'd like me to do?"
+            matched_skill = self.skills.get(skill_name)
+            if matched_skill and hasattr(matched_skill, 'handle'):
+                return matched_skill.handle(user_input, {"memory": self.memory})
+            else:
+                print(f"[Router] Skill '{skill_name}' not found or invalid.")
+                return "I'm not sure how to respond. Could you clarify what it is you'd like me to do?"
+        except Exception as e:
+            print(f"[Routing Error] {e}")
+            return "An error occurred while routing your request. Please try again."
 
     def classify_input(self, user_input):
         user_input = user_input.strip().lower()

@@ -18,8 +18,13 @@ def load_skills():
                 module = importlib.import_module(module_name)
                 if hasattr(module, "Skill"):
                     instance = module.Skill()
-                    skills[module_name.lower()] = instance
-                    print(f"[LP1] Loaded: {module_name}")
+                    # Validate that the Skill class has a 'handle' method
+                    if hasattr(instance, "handle") and callable(instance.handle):
+                        normalized_name = module_name.lower().replace(" ", "_").replace("-", "_")
+                        skills[normalized_name] = instance
+                        print(f"[LP1] Loaded: {module_name} as {normalized_name}")
+                    else:
+                        print(f"[LP1] Skipped (Skill class missing 'handle' method): {filename}")
                 else:
                     print(f"[LP1] Skipped (no Skill class): {filename}")
             except Exception as e:
