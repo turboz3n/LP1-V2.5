@@ -98,19 +98,14 @@ class Brain:
 
         # Handle the directive based on its intent
         if directive["intent"] == "chat":
-            if not self.chat_mode:
-                # First time entering chat mode
-                response = "Let's chat! How can I assist you further?"
-                self.chat_mode = True
-            else:
-                # Continue the conversation naturally
-                response = self.client.chat.completions.create(
-                    model="gpt-4",
-                    messages=[
-                        {"role": "system", "content": "You are a helpful assistant."},
-                        {"role": "user", "content": user_input}
-                    ]
-                ).choices[0].message.content.strip()
+            # Always respond naturally using the LLM
+            response = self.client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are a friendly and conversational assistant."},
+                    {"role": "user", "content": user_input}
+                ]
+            ).choices[0].message.content.strip()
 
         elif directive["intent"] == "goal":
             # Handle goal intent
