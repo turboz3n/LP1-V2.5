@@ -168,7 +168,8 @@ class {skill_name.capitalize()}Skill(Skill):
             action = directive["action"]
             if action in self.skills:
                 try:
-                    response = self.skills[action].handle(user_input)
+                    # Pass both user_input and context to the skill's handle method
+                    response = self.skills[action].handle(user_input, {"memory": self.memory})
                 except Exception as e:
                     response = f"Error executing skill '{action}': {e}"
             else:
