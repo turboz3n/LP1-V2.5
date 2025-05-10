@@ -25,11 +25,14 @@ class Brain:
         self.validate_skills()
 
     def validate_skills(self):
-        """Ensure all loaded skills have a 'handle' method."""
+        """Ensure all loaded skills implement the required methods."""
         invalid_skills = []
         for skill_name, skill_obj in self.skills.items():
             if not hasattr(skill_obj, 'handle') or not callable(skill_obj.handle):
                 print(f"[Error] Skill '{skill_name}' is invalid: Missing 'handle' method.")
+                invalid_skills.append(skill_name)
+            elif not hasattr(skill_obj, 'describe') or not callable(skill_obj.describe):
+                print(f"[Error] Skill '{skill_name}' is invalid: Missing 'describe' method.")
                 invalid_skills.append(skill_name)
         for skill_name in invalid_skills:
             del self.skills[skill_name]
