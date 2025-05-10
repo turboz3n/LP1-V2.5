@@ -1,6 +1,6 @@
 import os
 import torch
-from Core.skill_loader import load_skills
+from Core.ethics_policy import ethics_statement
 from Core.brain import Brain
 
 if __name__ == "__main__":
@@ -8,7 +8,10 @@ if __name__ == "__main__":
     os.environ["LP1_DEVICE"] = device
 
     print("[LP1] Initialization complete")
-    load_skills()
+    print("[LP1] Ethics Policy:")
+    print(ethics_statement())
+
+    brain = Brain()
 
     while True:
         try:
@@ -16,7 +19,6 @@ if __name__ == "__main__":
             if user_input.lower() in ["exit", "quit"]:
                 print("Exiting...")
                 break
-            brain = Brain()
             response = brain.handle_input(user_input)
             print(f"LP1: {response}")
         except KeyboardInterrupt:
