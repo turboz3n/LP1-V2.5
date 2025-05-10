@@ -1,5 +1,5 @@
 import os
-import openai
+from openai import OpenAI  # Import the OpenAI class
 
 def generate_tests(skill_path: str) -> str:
     """
@@ -19,13 +19,16 @@ def generate_tests(skill_path: str) -> str:
         source = f.read()
 
     try:
+        # Initialize the OpenAI client
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
         # Generate unit tests using OpenAI
         messages = [
             {"role": "system", "content": "You're an AI that writes unit tests for Python modules."},
             {"role": "user", "content": f"Generate pytest-compatible unit tests for this skill:\n{source}"}
         ]
 
-        response = openai.client.chat.completions.create(model="gpt-4", messages=messages)
+        response = client.chat.completions.create(model="gpt-4", messages=messages)
         test_code = response.choices[0].message["content"].strip()
 
         # Determine the test file path

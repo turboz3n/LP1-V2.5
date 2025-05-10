@@ -1,6 +1,6 @@
 import difflib
 import os
-import openai
+from openai import OpenAI  # Import the OpenAI class
 
 def propose_patch(original_path: str, prompt: str) -> str:
     """
@@ -21,8 +21,11 @@ def propose_patch(original_path: str, prompt: str) -> str:
         original_code = f.read()
 
     try:
+        # Initialize the OpenAI client
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
         # Generate the new code using OpenAI
-        response = openai.client.chat.completions.create(
+        response = client.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "You're an expert Python developer. Rewrite code based on user feedback."},

@@ -1,5 +1,6 @@
 from lp1.core.ethics_policy import enforce_ethics_context
-import openai
+from openai import OpenAI  # Import the OpenAI class
+import os
 
 def safe_completion(prompt: str, role: str = "user", system_override: str = None):
     """
@@ -16,9 +17,12 @@ def safe_completion(prompt: str, role: str = "user", system_override: str = None
     # Apply ethical enforcement to the prompt
     enforced_prompt = enforce_ethics_context(prompt)
 
+    # Initialize the OpenAI client
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
     # Send the prompt to the OpenAI API
     try:
-        response = openai.client.chat.completions.create(
+        response = client.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": system_override or "You are a kind, helpful, and safe AI assistant."},
