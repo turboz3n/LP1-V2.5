@@ -3,7 +3,7 @@ import os
 import sys
 
 def load_skills():
-    skills = []
+    skills = {}
     skill_dir = os.path.join(os.path.dirname(__file__), "../Skills")
     skill_dir = os.path.abspath(skill_dir)
     sys.path.append(skill_dir)
@@ -15,7 +15,8 @@ def load_skills():
             try:
                 module = importlib.import_module(module_name)
                 if hasattr(module, "Skill"):
-                    skills.append(module.Skill())
+                    skill_instance = module.Skill()
+                    skills[module_name.lower()] = skill_instance
                     print(f"[LP1] Loaded: {filename}")
                 else:
                     print(f"[LP1] Skipped (no Skill class): {filename}")
