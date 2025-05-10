@@ -1,20 +1,21 @@
-import importlib 
-import os 
-import sys 
-import traceback
+import importlib
+import os
+import sys
 
 def load_skills():
-    skills = {}
-    skills_dir = os.path.join(os.path.dirname(__file__), '../Skills')
-    sys.path.insert(0, os.path.abspath(skills_dir))
+    skills = []
+    skill_dir = os.path.join(os.path.dirname(__file__), "../Skills")
+    skill_dir = os.path.abspath(skill_dir)
+    sys.path.append(skill_dir)
 
-    for filename in os.listdir(skills_dir):
-        if filename.endswith('.py') and not filename.startswith('__'):
-            modulename = filename[:-3]
+    for filename in os.listdir(skill_dir):
+        if filename.endswith(".py") and filename != "__init__.py":
+            module_name = filename[:-3]
             try:
-                module = importlib.import_module(modulename)
-                skills[modulename] = module
+                module = importlib.import_module(module_name)
+                if hasattr(module, "Skill"):
+                    skills.append(module.Skill())
             except Exception as e:
-                print(f"Failed to load skill {modulename}: {e}")
+                print(f"[LP1] Failed to load {module_name}: {e}")
 
     return skills
