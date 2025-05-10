@@ -45,7 +45,8 @@ class Brain:
 
     matched_skill = self.skills.get(skill_name)
     if matched_skill:
-        return matched_skill.handle(user_input, {"memory": self.memory})
+        return matched_skill.handle(user_input, {"memory": 
+    self.memory})
     else:
         print(f"[Router] Skill '{skill_name}' not found. Available: {list(self.skills.keys())}")
         return "I'm not sure how to respond. Could you clarify what it is you'd like me to do?"
