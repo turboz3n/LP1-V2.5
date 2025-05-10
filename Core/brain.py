@@ -131,6 +131,14 @@ class {skill_name.capitalize()}Skill(Skill):
         recent = self.memory.recall(limit=5)
         return "\n".join(f"{m['role']}: {m['content']}" for m in recent if m['role'] in ["user", "lp1"])
 
+    def match_skill_to_goal(self, goal: str):
+        """Match a goal to the appropriate skill based on alias mapping."""
+        goal_lower = goal.lower()
+        for alias, skill_name in self.skill_aliases.items():
+            if alias in goal_lower:
+                return self.skills.get(skill_name)
+        return None
+
     def handle_input(self, user_input):
         self.memory.log("user", user_input)
         self.session_context.append({"user": user_input})
