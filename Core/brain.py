@@ -64,14 +64,32 @@ class Brain:
         return 'unknown'
 
     def classify_directive(self, text: str) -> dict:
-        lowered = text.lower()
-        if any(phrase in lowered for phrase in ["i want you to", "you should", "your job is to"]):
-            return {"intent": "goal", "priority": "high", "action": "record_and_plan"}
-        if any(phrase in lowered for phrase in ["never say", "don't ever", "stop doing"]):
-            return {"intent": "rule", "priority": "high", "action": "record_and_enforce"}
-        if re.match(r"^(please )?(make|build|write|create|generate) ", lowered):
-            return {"intent": "command", "priority": "medium", "action": "trigger_skill"}
-        return {"intent": "chat", "priority": "low", "action": "respond"}
+        prompt = f"""
+You are a directive classifier for an AI assistant.
+Given this user input, classify it as one of the following:
+- goal → user wants to set a long-term objective
+- rule → user is defining behavioral boundaries
+- trigger_skill → user is asking for an action or task to be performed
+- chat → general conversation
+
+Respond ONLY with a JSON object with these fields: intent, priority, action.
+Input: {text}
+"""
+
+        response = self.client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You classify user directives."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+
+        try:
+            classification = json.loads(response.choices[0].message.content)
+            return classification
+        except Exception as e:
+            print(f"[Directive Classifier Error] {e}")
+            return {"intent": "chat", "priority": "low", "action": "respond"}
 
     def store_goal(self, goal: str):
         with open(self.goal_store, "r+") as f:
