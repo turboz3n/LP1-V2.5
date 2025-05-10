@@ -156,7 +156,16 @@ class {skill_name.capitalize()}Skill(Skill):
             self.chat_mode = False  # Exit chat mode
             self.memory.log("goal", user_input)
             self.store_goal(user_input)
-            response = f"Got it. Queued your goal: '{user_input}'. I’ll plan how to achieve it."
+
+            # Process the goal immediately
+            matched_skill = self.match_skill_to_goal(user_input)
+            if matched_skill:
+                try:
+                    response = matched_skill.handle(user_input, {"memory": self.memory})
+                except Exception as e:
+                    response = f"Error executing skill for goal '{user_input}': {e}"
+            else:
+                response = f"Queued your goal: '{user_input}'. I’ll plan how to achieve it."
 
         elif directive["intent"] == "rule":
             self.chat_mode = False  # Exit chat mode
