@@ -18,6 +18,7 @@ class Brain:
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.goal_store = "goals.json"
         self.chat_mode = False  # Track whether LP1 is in chat mode
+        self.pending_skill_creation = None  # Track pending skill creation
         if not os.path.exists(self.goal_store):
             with open(self.goal_store, "w") as f:
                 json.dump([], f)
@@ -134,6 +135,21 @@ class {skill_name.capitalize()}Skill(Skill):
         self.memory.log("user", user_input)
         self.session_context.append({"user": user_input})
 
+        # Handle pending skill creation
+        if self.pending_skill_creation:
+            if "yes" in user_input.lower():
+                response = self.create_new_skill(self.pending_skill_creation)
+                self.pending_skill_creation = None  # Reset pending state
+                self.chat_mode = False  # Exit chat mode
+            else:
+                response = "Skill creation canceled."
+                self.pending_skill_creation = None  # Reset pending state
+                self.chat_mode = False  # Exit chat mode
+            self.memory.log("lp1", response)
+            self.session_context.append({"lp1": response})
+            return response
+
+        # Classify the directive
         directive = self.classify_directive(user_input)
 
         if directive["intent"] == "goal":
@@ -158,8 +174,7 @@ class {skill_name.capitalize()}Skill(Skill):
             else:
                 # Fallback for unknown actions
                 response = f"I don't have a skill for the action '{action}'. Would you like me to create one?"
-                if "yes" in user_input.lower():
-                    response = self.create_new_skill(action)
+                self.pending_skill_creation = action  # Set pending skill creation
 
         elif directive["intent"] == "chat":
             if not self.chat_mode:
