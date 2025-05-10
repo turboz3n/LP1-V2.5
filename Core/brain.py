@@ -1,14 +1,13 @@
-# Core/brain.py
 from dotenv import load_dotenv
 load_dotenv()
 from Core.memory import Memory
 import re
-from Skills import knowledge_ingestor
 import json
 import os
-
 from Core.skill_loader import load_skills
 from Core.ethics_enforcer import safe_completion
+from openai import OpenAI
+from Skills import knowledge_ingestor
 
 class Brain:
     def __init__(self):
@@ -16,10 +15,30 @@ class Brain:
         self.context = []
         self.session_context = []
         self.memory = Memory()
+        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.goal_store = "goals.json"
         if not os.path.exists(self.goal_store):
             with open(self.goal_store, "w") as f:
                 json.dump([], f)
+
+    def get_available_skill_names(self):
+        return list(self.skills.keys())
+
+    def route_with_llm(self, user_input: str) -> str:
+        skill_list = ", ".join(self.get_available_skill_names())
+        prompt = (
+            f"You are the LP1 router. Based on the user's message, select the best matching skill from this list: {skill_list}.\n"
+            f"Only return the exact skill name that should handle the task.\n"
+            f"User message: '{user_input}'"
+        )
+        response = self.client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are an intelligent skill router."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        return response.choices[0].message.content.strip()
 
     def classify_input(self, user_input):
         user_input = user_input.strip().lower()
@@ -33,16 +52,12 @@ class Brain:
 
     def classify_directive(self, text: str) -> dict:
         lowered = text.lower()
-
         if any(phrase in lowered for phrase in ["i want you to", "you should", "your job is to"]):
             return {"intent": "goal", "priority": "high", "action": "record_and_plan"}
-
         if any(phrase in lowered for phrase in ["never say", "don't ever", "stop doing"]):
             return {"intent": "rule", "priority": "high", "action": "record_and_enforce"}
-
         if re.match(r"^(please )?(make|build|write|create|generate) ", lowered):
             return {"intent": "command", "priority": "medium", "action": "trigger_skill"}
-
         return {"intent": "chat", "priority": "low", "action": "respond"}
 
     def store_goal(self, goal: str):
@@ -86,7 +101,14 @@ class Brain:
                 response = f"Understood. I will enforce: '{user_input}'"
 
             elif directive["action"] == "trigger_skill":
-                response = f"I recognized that as a command. Routing to skillset to execute: '{user_input}'"
+                try:
+                    routed = self.route_with_llm(user_input)
+                    if routed in self.skills:
+                        response = self.skills[routed].handle(user_input)
+                    else:
+                        response = f"Skill '{routed}' not found."
+                except Exception as e:
+                    response = f"[Routing Error] {e}"
 
             else:
                 intent_type = self.classify_input(user_input)
