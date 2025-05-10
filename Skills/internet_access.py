@@ -44,7 +44,7 @@ class InternetAccessSkill(Skill):
 
                 # Step 4: Summarize with OpenAI
                 prompt = f"Summarize this for a beginner:\n{text[:2000]}"
-                summary = openai.ChatCompletion.create(
+                summary = openai.client.chat.completions.create(
                     model="gpt-4",
                     messages=[
                         {"role": "system", "content": "You are a helpful assistant."},

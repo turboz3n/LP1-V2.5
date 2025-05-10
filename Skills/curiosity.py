@@ -25,7 +25,7 @@ class CuriositySkill(Skill):
             User input: {user_input}
             """
 
-            response = openai.ChatCompletion.create(
+            response = openai.client.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You're an AI explorer. Help the user understand or expand ideas."},

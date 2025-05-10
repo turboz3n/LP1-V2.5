@@ -31,7 +31,7 @@ class CoreSkill(Skill):
             Your response:
             """
 
-            response = openai.ChatCompletion.create(
+            response = openai.client.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are LP1, a highly capable AI that obeys all instructions and strives to improve itself."},

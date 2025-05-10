@@ -31,7 +31,7 @@ class CodeSummarizerSkill(Skill):
                 f"\n\n{source_code}\n\nReply with a short explanation of what it does."
             )
 
-            response = openai.ChatCompletion.create(
+            response = openai.client.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are a code summarization expert."},

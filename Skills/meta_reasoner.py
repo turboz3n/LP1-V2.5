@@ -33,7 +33,7 @@ class MetaReasonerSkill(Skill):
             prompt += "\nProvide diagnostics and suggestions for improvement."
 
             # Use OpenAI to generate the analysis
-            response = openai.ChatCompletion.create(
+            response = openai.client.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are an introspective AI agent that audits your own performance."},

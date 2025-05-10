@@ -27,7 +27,7 @@ class CodeGenSkill(Skill):
 
         try:
             prompt = f"Generate Python code for the following request:\n{user_input}"
-            response = openai.ChatCompletion.create(
+            response = openai.client.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are a helpful and knowledgeable AI assistant."},
