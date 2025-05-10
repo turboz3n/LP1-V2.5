@@ -8,6 +8,7 @@ def load_skills():
     skill_dir = os.path.abspath(skill_dir)
     sys.path.append(skill_dir)
 
+    print("[LP1] Scanning Skills folder...")
     for filename in os.listdir(skill_dir):
         if filename.endswith(".py") and filename != "__init__.py":
             module_name = filename[:-3]
@@ -15,7 +16,10 @@ def load_skills():
                 module = importlib.import_module(module_name)
                 if hasattr(module, "Skill"):
                     skills.append(module.Skill())
+                    print(f"[LP1] Loaded: {filename}")
+                else:
+                    print(f"[LP1] Skipped (no Skill class): {filename}")
             except Exception as e:
-                print(f"[LP1] Failed to load {module_name}: {e}")
+                print(f"[LP1] Failed to load {filename}: {e}")
 
     return skills
