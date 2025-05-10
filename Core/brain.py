@@ -50,7 +50,7 @@ class Brain:
         if matched_skill:
             return matched_skill.handle(user_input, {"memory": self.memory})
         else:
-            print(f"[Router] Skill '{skill_name}' not found. Available: {list(self.skills.keys())}")
+            print(f"[Router] Skill '{skill_name}' not found.")
             return "I'm not sure how to respond. Could you clarify what it is you'd like me to do?"
 
     def classify_input(self, user_input):
@@ -83,6 +83,8 @@ Input: {text}
                 {"role": "user", "content": prompt}
             ]
         )
+
+        print("[Classifier raw output]", response.choices[0].message.content)
 
         try:
             classification = json.loads(response.choices[0].message.content)
