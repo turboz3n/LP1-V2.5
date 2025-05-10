@@ -29,6 +29,6 @@ def safe_completion(prompt: str, role: str = "user", system_override: str = None
                 {"role": role, "content": enforced_prompt}
             ]
         )
-        return response
+        return response.choices[0].message.content.strip()
     except Exception as e:
         return {"error": f"Failed to complete the request: {e}"}

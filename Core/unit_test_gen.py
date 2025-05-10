@@ -29,7 +29,7 @@ def generate_tests(skill_path: str) -> str:
         ]
 
         response = client.chat.completions.create(model="gpt-4", messages=messages)
-        test_code = response.choices[0].message["content"].strip()
+        test_code = response.choices[0].message.content.strip()
 
         # Determine the test file path
         test_path = skill_path.replace("Skills/", "Tests/test_").replace(".py", "_test.py")

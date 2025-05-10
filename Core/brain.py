@@ -79,8 +79,9 @@ class Brain:
                 ]
             )
 
-            print("[Classifier raw output]", response.choices[0].message["content"])
-            classification = json.loads(response.choices[0].message["content"])
+            # Access the message content correctly
+            print("[Classifier raw output]", response.choices[0].message.content)
+            classification = json.loads(response.choices[0].message.content)
             return classification
         except Exception as e:
             print(f"[Directive Classifier Error] {e}")
@@ -106,7 +107,7 @@ class Brain:
                         {"role": "system", "content": "You are a helpful assistant."},
                         {"role": "user", "content": user_input}
                     ]
-                ).choices[0].message["content"].strip()
+                ).choices[0].message.content.strip()
 
         else:
             response = "I'm not sure how to respond. Could you clarify what you'd like me to do?"

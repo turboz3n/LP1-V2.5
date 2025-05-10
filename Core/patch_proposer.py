@@ -32,8 +32,7 @@ def propose_patch(original_path: str, prompt: str) -> str:
                 {"role": "user", "content": f"Here is the file content:\n\n{original_code}\n\nNow, based on this instruction, rewrite it:\n{prompt}"}
             ]
         )
-
-        new_code = response.choices[0].message["content"].strip()
+        new_code = response.choices[0].message.content.strip()
 
         # Generate a unified diff patch
         patch = difflib.unified_diff(
