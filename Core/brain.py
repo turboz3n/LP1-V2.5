@@ -93,7 +93,9 @@ class Brain:
 
         # Classify the directive
         directive = self.classify_directive(user_input)
+        print("[Directive]", directive)  # Debug log
 
+        # Handle the directive based on its intent
         if directive["intent"] == "chat":
             if not self.chat_mode:
                 # First time entering chat mode
@@ -109,7 +111,24 @@ class Brain:
                     ]
                 ).choices[0].message.content.strip()
 
+        elif directive["intent"] == "goal":
+            # Handle goal intent
+            response = f"Got it! I'll add the goal: {directive['action']}"
+
+        elif directive["intent"] == "rule":
+            # Handle rule intent
+            response = f"Understood. I'll enforce the rule: {directive['action']}"
+
+        elif directive["intent"] == "trigger_skill":
+            # Handle trigger_skill intent
+            skill_name = directive["action"]
+            if skill_name in self.skills:
+                response = self.skills[skill_name].handle(user_input, self.context)
+            else:
+                response = f"Sorry, I don't know how to perform the skill: {skill_name}"
+
         else:
+            # Fallback for unknown intents
             response = "I'm not sure how to respond. Could you clarify what you'd like me to do?"
 
         self.memory.log("lp1", response)
