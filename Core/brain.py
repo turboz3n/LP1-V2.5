@@ -4,6 +4,7 @@ from Core.memory import Memory
 import re
 import json
 import os
+import requests  # For internet access
 from Core.skill_loader import load_skills
 from Core.ethics_enforcer import safe_completion
 from openai import OpenAI  # Import the OpenAI class
@@ -56,8 +57,7 @@ class Brain:
 
     def classify_directive(self, text: str) -> dict:
         prompt = f"""
-        You are a directive classifier for an AI assistant.
-        Given this user input, classify it as one of the following:
+        You are LP1, an advanced AI assistant. Given this user input, classify it as one of the following:
         - goal → user wants to set a long-term objective (e.g., "Learn about neural networks").
         - rule → user is defining behavioral boundaries (e.g., "Never share personal data").
         - trigger_skill → user is asking for an action or task to be performed (e.g., "Improve your knowledge on neural networks").
@@ -88,112 +88,80 @@ class Brain:
             print(f"[Directive Classifier Error] {e}")
             return {"intent": "chat", "priority": "low", "action": "respond", "source": "user"}
 
-    def handle_input(self, user_input):
-        self.memory.log("user", user_input)
-        self.session_context.append({"user": user_input})
-
-        # Classify the directive
-        directive = self.classify_directive(user_input)
-        print("[Directive]", directive)  # Debug log
-
-        # Handle the directive based on its intent
-        if directive["intent"] == "chat":
-            if "what did you learn" in user_input.lower():
-                # Retrieve recent tasks from memory
-                recent_tasks = self.memory.get_recent_tasks()
-                if recent_tasks:
-                    response = "Here's what I've done recently:\n" + "\n".join(recent_tasks)
-                else:
-                    response = "I haven't done much yet. Let me know how I can assist you!"
-            else:
-                # Always respond naturally using the LLM
-                response = self.client.chat.completions.create(
-                    model="gpt-4",
-                    messages=[
-                        {"role": "system", "content": "You are a friendly and conversational assistant."},
-                        {"role": "user", "content": user_input}
-                    ]
-                ).choices[0].message.content.strip()
-
-        elif directive["intent"] == "goal":
-            # Handle goal intent
-            if directive["source"] == "user":
-                # Execute user-directed tasks immediately
-                response = self.dynamic_fallback(directive["action"], user_input)
-                # Log the completed task
-                self.memory.add_task(f"Completed goal: {directive['action']}")
-            else:
-                # Queue self-directed tasks
-                self.queue_goal(directive["action"])
-                response = f"Got it! I'll queue the goal: {directive['action']}"
-
-        elif directive["intent"] == "rule":
-            # Handle rule intent
-            response = f"Understood. I'll enforce the rule: {directive['action']}"
-
-        elif directive["intent"] == "trigger_skill":
-            # Handle trigger_skill intent
-            skill_name = directive["action"]
-            if skill_name in self.skills:
-                # Execute the skill if it exists
-                response = self.skills[skill_name].handle(user_input, self.context)
-                # Log the completed task
-                self.memory.add_task(f"Executed skill: {skill_name}")
-            else:
-                # Fallback: Use OpenAI to handle the action
-                response = self.dynamic_fallback(skill_name, user_input)
-                # Log the completed task
-                self.memory.add_task(f"Fallback executed for action: {skill_name}")
-
-        else:
-            # Fallback for unknown intents
-            response = "I'm not sure how to respond. Could you clarify what you'd like me to do?"
-
-        self.memory.log("lp1", response)
-        self.session_context.append({"lp1": response})
-        return response
-
-    def dynamic_fallback(self, action, user_input):
+    def summarize_skills(self):
         """
-        Handles generic or undefined actions dynamically using the OpenAI LLM.
+        Summarizes all loaded skills and their descriptions.
+        """
+        if not self.skills:
+            return "I currently have no skills loaded."
+
+        skill_descriptions = []
+        for skill_name, skill_obj in self.skills.items():
+            if hasattr(skill_obj, "describe") and callable(skill_obj.describe):
+                description = skill_obj.describe()
+                skill_descriptions.append(f"- {skill_name}: {description.get('description', 'No description available.')}")
+            else:
+                skill_descriptions.append(f"- {skill_name}: No description available.")
+
+        return "Here are my current skills and their descriptions:\n" + "\n".join(skill_descriptions)
+
+    def describe_capabilities(self):
+        """
+        Returns a high-level description of LP1's capabilities.
+        """
+        return (
+            "I am LP1, an advanced AI assistant. Here are my main capabilities:\n"
+            "- I can execute predefined skills, such as summarizing code or analyzing data.\n"
+            "- I can dynamically handle tasks using my language model capabilities.\n"
+            "- I maintain a memory of recent tasks and conversations.\n"
+            "- I can classify user directives into goals, rules, skills, or general conversation.\n"
+            "- I can queue self-directed goals for future execution.\n"
+            "- I can read and summarize my own code to improve myself.\n"
+            "Let me know how I can assist you!"
+        )
+
+    def read_own_code(self, file_path):
+        """
+        Reads and summarizes the content of a given file.
 
         Args:
-            action (str): The action to perform.
-            user_input (str): The original user input.
+            file_path (str): The path to the file to read.
 
         Returns:
-            str: The response generated by the OpenAI LLM.
+            str: A summary of the file's content.
         """
         try:
-            # Use OpenAI to interpret and execute the action
+            with open(file_path, "r") as f:
+                code = f.read()
+            # Use the LLM to summarize the code
             response = self.client.chat.completions.create(
                 model="gpt-4",
                 messages=[
-                    {"role": "system", "content": "You are a highly capable assistant that can perform tasks dynamically based on user instructions."},
-                    {"role": "user", "content": f"Perform the following action: {action}. Context: {user_input}"}
+                    {"role": "system", "content": "You are a code summarization expert."},
+                    {"role": "user", "content": f"Summarize the following code:\n\n{code}"}
                 ]
             ).choices[0].message.content.strip()
             return response
         except Exception as e:
-            print(f"[Dynamic Fallback Error] {e}")
-            return f"Sorry, I couldn't perform the action '{action}' due to an error."
+            return f"Sorry, I couldn't read the file due to an error: {e}"
 
-    def queue_goal(self, goal):
+    def fetch_data_from_internet(self, query):
         """
-        Adds a self-directed goal to the goals list.
+        Fetches data from the internet for a given query.
 
         Args:
-            goal (str): The goal to queue.
+            query (str): The search query.
+
+        Returns:
+            str: The retrieved information or an error message.
         """
         try:
-            with open(self.goal_store, "r") as f:
-                goals = json.load(f)
-        except FileNotFoundError:
-            goals = []
-
-        goals.append(goal)
-
-        with open(self.goal_store, "w") as f:
-            json.dump(goals, f)
-
-        print(f"[Goal Queued] {goal}")
+            # Example: Use a trusted API like Wikipedia
+            response = requests.get(f"https://en.wikipedia.org/api/rest_v1/page/summary/{query}")
+            if response.status_code == 200:
+                data = response.json()
+                return data.get("extract", "No information available.")
+            else:
+                return "Failed to retrieve information."
+        except Exception as e:
+            return f"Error fetching data: {e}"
