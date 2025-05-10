@@ -98,20 +98,30 @@ class Brain:
 
         # Handle the directive based on its intent
         if directive["intent"] == "chat":
-            # Always respond naturally using the LLM
-            response = self.client.chat.completions.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "system", "content": "You are a friendly and conversational assistant."},
-                    {"role": "user", "content": user_input}
-                ]
-            ).choices[0].message.content.strip()
+            if "what did you learn" in user_input.lower():
+                # Retrieve recent tasks from memory
+                recent_tasks = self.memory.get_recent_tasks()
+                if recent_tasks:
+                    response = "Here's what I've done recently:\n" + "\n".join(recent_tasks)
+                else:
+                    response = "I haven't done much yet. Let me know how I can assist you!"
+            else:
+                # Always respond naturally using the LLM
+                response = self.client.chat.completions.create(
+                    model="gpt-4",
+                    messages=[
+                        {"role": "system", "content": "You are a friendly and conversational assistant."},
+                        {"role": "user", "content": user_input}
+                    ]
+                ).choices[0].message.content.strip()
 
         elif directive["intent"] == "goal":
             # Handle goal intent
             if directive["source"] == "user":
                 # Execute user-directed tasks immediately
                 response = self.dynamic_fallback(directive["action"], user_input)
+                # Log the completed task
+                self.memory.add_task(f"Completed goal: {directive['action']}")
             else:
                 # Queue self-directed tasks
                 self.queue_goal(directive["action"])
@@ -127,9 +137,13 @@ class Brain:
             if skill_name in self.skills:
                 # Execute the skill if it exists
                 response = self.skills[skill_name].handle(user_input, self.context)
+                # Log the completed task
+                self.memory.add_task(f"Executed skill: {skill_name}")
             else:
                 # Fallback: Use OpenAI to handle the action
                 response = self.dynamic_fallback(skill_name, user_input)
+                # Log the completed task
+                self.memory.add_task(f"Fallback executed for action: {skill_name}")
 
         else:
             # Fallback for unknown intents
