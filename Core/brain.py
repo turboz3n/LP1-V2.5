@@ -44,6 +44,7 @@ class Brain:
         skill_name = raw_skill_name.lower().replace(" ", "_").replace("-", "_")
 
         print(f"[Router] LLM suggested: {raw_skill_name} → normalized: {skill_name}")
+        print(f"[Router] Available skills: {list(self.skills.keys())}")
 
         matched_skill = self.skills.get(skill_name)
         if matched_skill:
