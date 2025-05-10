@@ -24,13 +24,14 @@ class Brain:
     def get_available_skill_names(self):
         return list(self.skills.keys())
 
-    def route_with_llm(self, user_input: str) -> str:
-        skill_list = ", ".join(self.get_available_skill_names())
-        prompt = (
-            f"You are the LP1 router. Based on the user's message, select the best matching skill from this list: {skill_list}.\n"
-            f"Only return the exact skill name that should handle the task.\n"
-            f"User message: '{user_input}'"
+def route_with_llm(self, user_input: str) -> str:
+    skill_list = ", ".join(self.get_available_skill_names())
+    prompt = (
+        f"You are the LP1 router. Based on the user's message, select the best matching skill from this list: {skill_list}.\n"
+        f"Only return the exact skill name that should handle the task.\n"
+        f"User message: '{user_input}'"
     )
+
     response = self.client.chat.completions.create(
         model="gpt-4",
         messages=[
@@ -38,6 +39,7 @@ class Brain:
             {"role": "user", "content": prompt}
         ]
     )
+
     raw_skill_name = response.choices[0].message.content.strip()
     skill_name = raw_skill_name.lower().replace(" ", "_").replace("-", "_")
 
@@ -45,12 +47,11 @@ class Brain:
 
     matched_skill = self.skills.get(skill_name)
     if matched_skill:
-        return matched_skill.handle(user_input, {"memory": 
-    self.memory})
+        return matched_skill.handle(user_input, {"memory": self.memory})
     else:
         print(f"[Router] Skill '{skill_name}' not found. Available: {list(self.skills.keys())}")
         return "I'm not sure how to respond. Could you clarify what it is you'd like me to do?"
-
+        
     def classify_input(self, user_input):
         user_input = user_input.strip().lower()
         if user_input.endswith('?') or user_input.startswith(('what', 'who', 'how', 'when', 'why')):
