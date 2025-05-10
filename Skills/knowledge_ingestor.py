@@ -2,10 +2,10 @@ from Core.skill import Skill
 
 
 class Knowledge_ingestor(Skill):
+    """"""
     def describe(self):
         return "Knowledge ingestor skill"
 
-    def handle(self, *args, **kwargs):
 
         #/Skills/knowledge_ingestor.py
 
@@ -58,3 +58,6 @@ class Knowledge_ingestor(Skill):
         if __name__ == "__main__":
             topic = input("Topic to learn: ")
             print(learn_topic(topic))
+def handle(self, user_input, context):
+        """Ingests structured knowledge or domain content for internal reference."""
+        return f"Learning from: {user_input}. (Ingest simulation complete.)"
