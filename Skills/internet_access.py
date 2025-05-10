@@ -49,3 +49,5 @@ class Skill(Skill):
                 summaries.append(f"**{url}**\nError fetching/summarizing: {e}\n")
 
         return "\n\n".join(summaries) if summaries else "No usable content found."
+
+module_name = __name__
