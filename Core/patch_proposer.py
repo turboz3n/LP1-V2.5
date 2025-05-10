@@ -1,9 +1,6 @@
 import difflib
 import os
-from openai import OpenAI
-
-# Initialize the OpenAI client
-client = OpenAI()
+import openai
 
 def propose_patch(original_path: str, prompt: str) -> str:
     """
@@ -25,7 +22,7 @@ def propose_patch(original_path: str, prompt: str) -> str:
 
     try:
         # Generate the new code using OpenAI
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "You're an expert Python developer. Rewrite code based on user feedback."},
@@ -33,7 +30,7 @@ def propose_patch(original_path: str, prompt: str) -> str:
             ]
         )
 
-        new_code = response.choices[0].message.content.strip()
+        new_code = response.choices[0].message["content"].strip()
 
         # Generate a unified diff patch
         patch = difflib.unified_diff(

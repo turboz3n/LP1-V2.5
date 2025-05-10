@@ -6,7 +6,7 @@ import json
 import os
 from Core.skill_loader import load_skills
 from Core.ethics_enforcer import safe_completion
-from openai import OpenAI
+import openai
 from Skills import knowledge_ingestor
 
 class Brain:
@@ -15,7 +15,7 @@ class Brain:
         self.context = []
         self.session_context = []
         self.memory = Memory()
-        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self.client = openai  # Use the updated OpenAI library
         self.goal_store = "goals.json"
         self.chat_mode = False  # Track whether LP1 is in chat mode
         self.pending_skill_creation = None  # Track pending skill creation
@@ -56,23 +56,22 @@ class Brain:
 
     def classify_directive(self, text: str) -> dict:
         prompt = f"""
-You are a directive classifier for an AI assistant.
-Given this user input, classify it as one of the following:
-- goal → user wants to set a long-term objective (e.g., "Learn about neural networks").
-- rule → user is defining behavioral boundaries (e.g., "Never share personal data").
-- trigger_skill → user is asking for an action or task to be performed (e.g., "Improve your knowledge on neural networks").
-- chat → general conversation (e.g., "How are you?").
+        You are a directive classifier for an AI assistant.
+        Given this user input, classify it as one of the following:
+        - goal → user wants to set a long-term objective (e.g., "Learn about neural networks").
+        - rule → user is defining behavioral boundaries (e.g., "Never share personal data").
+        - trigger_skill → user is asking for an action or task to be performed (e.g., "Improve your knowledge on neural networks").
+        - chat → general conversation (e.g., "How are you?").
 
-Respond ONLY with a JSON object with these fields: intent, priority, action.
-- intent: One of "goal", "rule", "trigger_skill", or "chat".
-- priority: One of "low", "medium", or "high".
-- action: A concise description of the action (e.g., "learn_topic", "update_knowledgebase", "respond").
+        Respond ONLY with a JSON object with these fields: intent, priority, action.
+        - intent: One of "goal", "rule", "trigger_skill", or "chat".
+        - priority: One of "low", "medium", or "high".
+        - action: A concise description of the action (e.g., "learn_topic", "update_knowledgebase", "respond").
 
-Input: {text}
-"""
-
+        Input: {text}
+        """
         try:
-            response = self.client.chat.completions.create(
+            response = self.client.ChatCompletion.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You classify user directives."},
@@ -80,9 +79,8 @@ Input: {text}
                 ]
             )
 
-            print("[Classifier raw output]", response.choices[0].message.content)
-
-            classification = json.loads(response.choices[0].message.content)
+            print("[Classifier raw output]", response.choices[0].message["content"])
+            classification = json.loads(response.choices[0].message["content"])
             return classification
         except Exception as e:
             print(f"[Directive Classifier Error] {e}")
@@ -131,14 +129,6 @@ class {skill_name.capitalize()}Skill(Skill):
         recent = self.memory.recall(limit=5)
         return "\n".join(f"{m['role']}: {m['content']}" for m in recent if m['role'] in ["user", "lp1"])
 
-    def match_skill_to_goal(self, goal: str):
-        """Match a goal to the appropriate skill based on alias mapping."""
-        goal_lower = goal.lower()
-        for alias, skill_name in self.skill_aliases.items():
-            if alias in goal_lower:
-                return self.skills.get(skill_name)
-        return None
-
     def handle_input(self, user_input):
         self.memory.log("user", user_input)
         self.session_context.append({"user": user_input})
@@ -185,12 +175,10 @@ class {skill_name.capitalize()}Skill(Skill):
             action = directive["action"]
             if action in self.skills:
                 try:
-                    # Pass both user_input and context to the skill's handle method
                     response = self.skills[action].handle(user_input, {"memory": self.memory})
                 except Exception as e:
                     response = f"Error executing skill '{action}': {e}"
             else:
-                # Fallback for unknown actions
                 response = f"I don't have a skill for the action '{action}'. Would you like me to create one?"
                 self.pending_skill_creation = action  # Set pending skill creation
 
@@ -201,9 +189,13 @@ class {skill_name.capitalize()}Skill(Skill):
                 self.chat_mode = True
             else:
                 # Continue the conversation naturally
-                response = safe_completion(
-                    f"Context:\n{self.get_chat_context()}\n\nUser: {user_input}\nLP1:"
-                ).choices[0].message.content.strip()
+                response = self.client.ChatCompletion.create(
+                    model="gpt-4",
+                    messages=[
+                        {"role": "system", "content": "You are a helpful assistant."},
+                        {"role": "user", "content": user_input}
+                    ]
+                ).choices[0].message["content"].strip()
 
         else:
             self.chat_mode = False  # Exit chat mode
@@ -219,5 +211,3 @@ class {skill_name.capitalize()}Skill(Skill):
             goals.append(goal)
             f.seek(0)
             json.dump(goals, f, indent=2)
-
-brain = Brain()
