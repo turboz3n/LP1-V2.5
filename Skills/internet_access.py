@@ -1,7 +1,7 @@
 from Core.skill import Skill
 import requests
 from bs4 import BeautifulSoup
-from openai import OpenAI
+import openai
 import re
 
 
@@ -17,7 +17,6 @@ class InternetAccessSkill(Skill):
 
     def handle(self, user_input, context):
         """Searches the internet and summarizes content based on the user's query."""
-        client = OpenAI()
 
         # Step 1: Extract query topic
         topic = user_input.lower().replace("search", "").replace("learn about", "").replace("look up", "").strip()
@@ -45,13 +44,13 @@ class InternetAccessSkill(Skill):
 
                 # Step 4: Summarize with OpenAI
                 prompt = f"Summarize this for a beginner:\n{text[:2000]}"
-                summary = client.chat.completions.create(
+                summary = openai.ChatCompletion.create(
                     model="gpt-4",
                     messages=[
                         {"role": "system", "content": "You are a helpful assistant."},
                         {"role": "user", "content": prompt},
                     ]
-                ).choices[0].message.content
+                ).choices[0].message["content"]
 
                 summaries.append(f"**{url}**\n{summary.strip()}\n")
             except Exception as e:
