@@ -2,10 +2,10 @@ from Core.skill import Skill
 
 
 class Code_summarizer(Skill):
+    """"""
     def describe(self):
         return "Code summarizer skill"
 
-    def handle(self, *args, **kwargs):
 
         import os
         from openai import OpenAI
@@ -36,3 +36,9 @@ class Code_summarizer(Skill):
 
         def register():
             return { "summarize": summarize_file }
+def handle(self, user_input, context):
+        """Summarizes uploaded code or text files available to LP1."""
+        if "context" in context and "file" in context["context"]:
+            code = context["context"]["file"]
+            return f"Summary of file:\n(Stub) This appears to be {len(code.splitlines())} lines of code."
+        return "No code provided to summarize."
