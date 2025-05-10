@@ -70,3 +70,17 @@ class Memory:
         """
         with open(self.memory_file, 'r') as f:
             return json.load(f)
+
+
+def recall_recent(limit: int = 5) -> list:
+    """
+    Retrieves the most recent interactions from memory.
+
+    Args:
+        limit (int): The number of recent interactions to retrieve.
+
+    Returns:
+        list: A list of recent interactions.
+    """
+    memory = Memory()
+    return memory.recall(limit)
