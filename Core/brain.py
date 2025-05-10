@@ -17,6 +17,7 @@ class Brain:
         self.memory = Memory()
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.goal_store = "goals.json"
+        self.chat_mode = False  # Track whether LP1 is in chat mode
         if not os.path.exists(self.goal_store):
             with open(self.goal_store, "w") as f:
                 json.dump([], f)
@@ -52,45 +53,6 @@ class Brain:
         print(f"[LP1] Generated alias mapping: {aliases}")
         return aliases
 
-    def get_available_skill_names(self):
-        return list(self.skills.keys())
-
-    def route_with_llm(self, user_input: str) -> str:
-        skill_list = ", ".join(self.get_available_skill_names())
-        prompt = (
-            f"You are the LP1 router. Based on the user's message, select the best matching skill from this list: {skill_list}.\n"
-            f"Only return the exact skill name or alias that should handle the task.\n"
-            f"User message: '{user_input}'"
-        )
-
-        try:
-            response = self.client.chat.completions.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "system", "content": "You are an intelligent skill router."},
-                    {"role": "user", "content": prompt}
-                ]
-            )
-
-            raw_skill_name = response.choices[0].message.content.strip()
-            skill_name = raw_skill_name.lower().replace(" ", "_").replace("-", "_")
-
-            print(f"[Router] LLM suggested: {raw_skill_name} → normalized: {skill_name}")
-            print(f"[Router] Available skills: {list(self.skills.keys())}")
-
-            # Map alias to actual skill key
-            actual_skill_name = self.skill_aliases.get(skill_name, skill_name)
-
-            matched_skill = self.skills.get(actual_skill_name)
-            if matched_skill and hasattr(matched_skill, 'handle'):
-                return matched_skill.handle(user_input, {"memory": self.memory})
-            else:
-                print(f"[Router] Skill '{actual_skill_name}' not found or invalid.")
-                return "I'm not sure how to respond. Could you clarify what it is you'd like me to do?"
-        except Exception as e:
-            print(f"[Routing Error] {e}")
-            return "An error occurred while routing your request. Please try again."
-
     def classify_directive(self, text: str) -> dict:
         prompt = f"""
 You are a directive classifier for an AI assistant.
@@ -125,12 +87,48 @@ Input: {text}
             print(f"[Directive Classifier Error] {e}")
             return {"intent": "chat", "priority": "low", "action": "respond"}
 
-    def store_goal(self, goal: str):
-        with open(self.goal_store, "r+") as f:
-            goals = json.load(f)
-            goals.append(goal)
-            f.seek(0)
-            json.dump(goals, f, indent=2)
+    def create_new_skill(self, action_name):
+        """Dynamically create a new skill file for the given action."""
+        skill_name = action_name.lower().replace(" ", "_")
+        skill_file_path = f"Skills/{skill_name}.py"
+
+        if os.path.exists(skill_file_path):
+            return f"The skill '{action_name}' already exists."
+
+        # Generate a basic skill template
+        skill_template = f"""
+from Core.skill import Skill
+from typing import Dict, Any
+
+class {skill_name.capitalize()}Skill(Skill):
+    \"\"\"Dynamically created skill for '{action_name}'.\"\"\"
+
+    def describe(self) -> Dict[str, Any]:
+        return {{
+            "name": "{skill_name}",
+            "trigger": ["{action_name}"],
+            "description": "This is a dynamically created skill for '{action_name}'."
+        }}
+
+    def handle(self, user_input: str, context: Dict[str, Any]) -> str:
+        return "This is a placeholder response for the '{action_name}' skill."
+"""
+
+        # Write the skill file
+        os.makedirs("Skills", exist_ok=True)
+        with open(skill_file_path, "w") as f:
+            f.write(skill_template.strip())
+
+        # Reload skills
+        self.skills = load_skills()
+        self.skill_aliases = self.generate_alias_mapping()
+
+        return f"The skill '{action_name}' has been created and loaded."
+
+    def get_chat_context(self):
+        """Retrieve recent chat context for natural conversation."""
+        recent = self.memory.recall(limit=5)
+        return "\n".join(f"{m['role']}: {m['content']}" for m in recent if m['role'] in ["user", "lp1"])
 
     def handle_input(self, user_input):
         self.memory.log("user", user_input)
@@ -139,15 +137,18 @@ Input: {text}
         directive = self.classify_directive(user_input)
 
         if directive["intent"] == "goal":
+            self.chat_mode = False  # Exit chat mode
             self.memory.log("goal", user_input)
             self.store_goal(user_input)
             response = f"Got it. Queued your goal: '{user_input}'. I’ll plan how to achieve it."
 
         elif directive["intent"] == "rule":
+            self.chat_mode = False  # Exit chat mode
             self.memory.log("rule", user_input)
             response = f"Understood. I will enforce: '{user_input}'"
 
         elif directive["intent"] == "trigger_skill":
+            self.chat_mode = False  # Exit chat mode
             action = directive["action"]
             if action in self.skills:
                 try:
@@ -157,37 +158,33 @@ Input: {text}
             else:
                 # Fallback for unknown actions
                 response = f"I don't have a skill for the action '{action}'. Would you like me to create one?"
+                if "yes" in user_input.lower():
+                    response = self.create_new_skill(action)
+
+        elif directive["intent"] == "chat":
+            if not self.chat_mode:
+                # First time entering chat mode
+                response = "Let's chat! How can I assist you further?"
+                self.chat_mode = True
+            else:
+                # Continue the conversation naturally
+                response = safe_completion(
+                    f"Context:\n{self.get_chat_context()}\n\nUser: {user_input}\nLP1:"
+                ).choices[0].message.content.strip()
 
         else:
-            intent_type = self.classify_input(user_input)
-            if intent_type == 'question':
-                response = self.respond_to_question(user_input)
-            elif intent_type == 'command':
-                response = self.execute_command(user_input)
-            elif intent_type == 'suggestion':
-                response = self.plan_new_capability(user_input)
-            else:
-                response = "I'm not sure how to respond. Could you clarify what you'd like me to do?"
+            self.chat_mode = False  # Exit chat mode
+            response = "I'm not sure how to respond. Could you clarify what you'd like me to do?"
 
         self.memory.log("lp1", response)
         self.session_context.append({"lp1": response})
         return response
 
-    def respond_to_question(self, user_input):
-        recent = self.memory.recall()
-        memory_context = "\n".join(f"{m['role']}: {m['content']}" for m in recent)
-        response = safe_completion(
-            f"Context:\n{memory_context}\n\n{user_input}"
-        )
-        return response.choices[0].message.content
-
-    def execute_command(self, user_input):
-        routed_skill = self.route_with_llm(user_input)
-        if routed_skill in self.skills:
-            return self.skills[routed_skill].handle(user_input)
-        return "Command acknowledged, but I don't yet have a skill for that action."
-
-    def plan_new_capability(self, user_input):
-        return "Planning module stub: This will eventually propose new modules when capabilities are lacking."
+    def store_goal(self, goal: str):
+        with open(self.goal_store, "r+") as f:
+            goals = json.load(f)
+            goals.append(goal)
+            f.seek(0)
+            json.dump(goals, f, indent=2)
 
 brain = Brain()
