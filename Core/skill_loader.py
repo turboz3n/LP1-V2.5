@@ -12,6 +12,8 @@ def load_skills():
         if filename.endswith(".py") and filename != "__init__.py":
             skill_name = filename[:-3]  # remove .py
             try:
+                if module_name in sys.modules:
+                    del sys.modules[module_name]
                 module = importlib.import_module(skill_name)
                 if hasattr(module, "Skill"):
                     instance = module.Skill()
