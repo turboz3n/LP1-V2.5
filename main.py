@@ -13,6 +13,10 @@ if __name__ == "__main__":
 
     brain = Brain()
 
+    print("[LP1] Skills loaded:")
+    for skill_name in brain.skills:
+        print(f" - {skill_name}")
+
     while True:
         try:
             user_input = input("\nYou: ")
