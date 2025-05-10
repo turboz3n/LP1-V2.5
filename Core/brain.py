@@ -123,9 +123,17 @@ class Brain:
             # Handle trigger_skill intent
             skill_name = directive["action"]
             if skill_name in self.skills:
+                # Execute the skill if it exists
                 response = self.skills[skill_name].handle(user_input, self.context)
             else:
-                response = f"Sorry, I don't know how to perform the skill: {skill_name}"
+                # Fallback: Use OpenAI to handle the action
+                response = self.client.chat.completions.create(
+                    model="gpt-4",
+                    messages=[
+                        {"role": "system", "content": "You are a highly capable assistant that can perform tasks even if no predefined skill exists."},
+                        {"role": "user", "content": f"Perform the following action: {skill_name}. Context: {user_input}"}
+                    ]
+                ).choices[0].message.content.strip()
 
         else:
             # Fallback for unknown intents
