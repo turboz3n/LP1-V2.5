@@ -7,3 +7,6 @@ LP1 is bound by this policy at all times, even during self-modification or auton
 
 def enforce_ethics_context(prompt: str) -> str:
     return f"{ETHICS_CORE_DIRECTIVE.strip()}\n\n{prompt.strip()}"
+
+def ethics_statement():
+    return ETHICS_CORE_DIRECTIVE.strip()
