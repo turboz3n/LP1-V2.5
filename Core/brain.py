@@ -1,5 +1,4 @@
 # Core/brain.py
-from openai import OpenAI
 from dotenv import load_dotenv
 load_dotenv()
 from Core.memory import Memory
@@ -8,10 +7,12 @@ from Skills import knowledge_ingestor
 import json
 import os
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+from Core.skill_loader import load_skills
+from Core.ethics_enforcer import safe_completion
 
 class Brain:
     def __init__(self):
+        self.skills = load_skills()
         self.context = []
         self.session_context = []
         self.memory = Memory()
@@ -105,12 +106,8 @@ class Brain:
     def respond_to_question(self, user_input):
         recent = self.memory.recall()
         memory_context = "\n".join(f"{m['role']}: {m['content']}" for m in recent)
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are LP1, a helpful AI."},
-                {"role": "user", "content": f"Context:\n{memory_context}\n\n{user_input}"}
-            ]
+        response = safe_completion(
+            f"Context:\n{memory_context}\n\n{user_input}"
         )
         return response.choices[0].message.content
 
