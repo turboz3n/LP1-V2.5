@@ -4,6 +4,7 @@ import torch
 from Core.ethics_policy import ethics_statement
 from Core.brain import Brain
 from Skills.scheduler import Scheduler
+import threading  # Import threading for background execution
 
 # Load environment variables from the .env file
 load_dotenv()
@@ -43,6 +44,13 @@ def main():
 
 if __name__ == "__main__":
     print("Starting LP1 with autonomous browsing...")
+
+    # Initialize the scheduler
     scheduler = Scheduler()
-    scheduler.start()
+
+    # Run the scheduler in a separate thread
+    scheduler_thread = threading.Thread(target=scheduler.start, daemon=True)
+    scheduler_thread.start()
+
+    # Start the main application
     main()
