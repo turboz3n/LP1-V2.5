@@ -35,33 +35,31 @@ class InternetAccessSkill(Skill):
 
     def handle(self, user_input, context):
         """Handles internet-related tasks based on the user's query."""
+        print(f"Received input: {user_input}")  # Debug statement
+
         # Step 1: Check if the input is a URL
         if self.is_url(user_input):
             print(f"Detected URL: {user_input}")  # Debug statement
             return self.summarize_url(user_input)
 
-        # Step 2: Dynamically expand topics
-        topics = self.expand_topics()
-
-        # Step 3: Search and summarize for each topic
-        knowledge = []
-        for topic in topics:
-            print(f"Searching for: {topic}")
+        # Step 2: Check if the input is a search query
+        if "search for" in user_input.lower():
+            topic = user_input.lower().replace("search for", "").strip()
+            print(f"Detected search query for topic: {topic}")  # Debug statement
             search_results = self.search(topic)
-            for result in search_results:
-                summary = self.summarize_url(result)
-                if summary:
-                    knowledge.append({
-                        "topic": topic,
-                        "url": result,
-                        "summary": summary,
-                        "timestamp": datetime.now().isoformat()
-                    })
+            if search_results:
+                summaries = []
+                for result in search_results:
+                    summary = self.summarize_url(result)
+                    if summary:
+                        summaries.append(summary)
+                return "\n\n".join(summaries)
+            else:
+                return f"Sorry, I couldn't find any results for '{topic}'."
 
-        # Step 4: Store knowledge in the knowledge base
-        self.store_knowledge(knowledge)
-
-        return f"Successfully gathered and stored knowledge on {len(topics)} topics."
+        # Fallback response
+        print("Input did not match any known patterns.")  # Debug statement
+        return "I'm currently unable to process your request. Please provide a valid URL or query."
 
     def expand_topics(self):
         """Generates meaningful random topics for autonomous browsing using seed words."""
