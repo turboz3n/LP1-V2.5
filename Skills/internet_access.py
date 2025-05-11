@@ -138,7 +138,7 @@ class InternetAccessSkill(Skill):
 
             # Extract links using regex
             links = list(set(
-                re.findall(r'<a[^>]+href="(https://[^"]+)"', res.text)
+                re.findall(r'<a rel="nofollow" class="result__a" href="(https://[^"]+)"', res.text)
             ))[:3]  # Limit to top 3 results
             print(f"Extracted links: {links}")  # Debug statement
 
