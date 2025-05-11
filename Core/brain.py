@@ -81,9 +81,9 @@ class Brain:
         ])
         prompt = f"""
         You are LP1, an advanced AI assistant. Given this user input and recent context, classify it as one of the following:
-        - goal → user wants to set a long-term objective (e.g., "Learn about neural networks").
+        - goal → user wants to set a long-term objective 
         - rule → user is defining behavioral boundaries (e.g., "Never share personal data").
-        - trigger_skill → user is asking for an action or task to be performed (e.g., "Improve your knowledge on neural networks").
+        - trigger_skill → user is asking for an action or task to be performed 
         - chat → general conversation (e.g., "How are you?").
 
         Respond ONLY with a JSON object containing:
