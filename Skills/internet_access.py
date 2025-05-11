@@ -57,6 +57,28 @@ class InternetAccessSkill(Skill):
             else:
                 return f"Sorry, I couldn't find any results for '{topic}'."
 
+        # Step 3: Handle autonomous browsing
+        if "autonomous browsing" in user_input.lower():
+            print("Starting autonomous browsing...")  # Debug statement
+            topics = self.expand_topics()
+            knowledge = []
+            for topic in topics:
+                print(f"Autonomously searching for topic: {topic}")  # Debug statement
+                search_results = self.search(topic)
+                for result in search_results:
+                    summary = self.summarize_url(result)
+                    if summary:
+                        knowledge.append({
+                            "topic": topic,
+                            "url": result,
+                            "summary": summary,
+                            "timestamp": datetime.now().isoformat()
+                        })
+
+            # Store the knowledge in the knowledge base
+            self.store_knowledge(knowledge)
+            return f"Autonomous browsing completed. Gathered knowledge on {len(topics)} topics."
+
         # Fallback response
         print("Input did not match any known patterns.")  # Debug statement
         return "I'm currently unable to process your request. Please provide a valid URL or query."
