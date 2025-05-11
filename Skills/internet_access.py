@@ -164,11 +164,20 @@ class InternetAccessSkill(Skill):
 
             # Parse the HTML content
             soup = BeautifulSoup(html, "html.parser")
-            text = soup.get_text("\n")
-            short_text = "\n".join(text.split("\n")[:80])  # Limit to the first 80 lines
 
-            # Summarize with OpenAI
-            prompt = f"Summarize this for a beginner:\n{text[:2000]}"  # Limit input to 2000 characters
+            # Extract readable text from the page
+            for script_or_style in soup(["script", "style"]):
+                script_or_style.decompose()  # Remove JavaScript and CSS
+
+            text = soup.get_text(separator="\n").strip()  # Extract visible text
+            text = "\n".join([line.strip() for line in text.splitlines() if line.strip()])  # Remove empty lines
+
+            if not text:
+                print(f"No readable content found at URL: {url}")  # Debug statement
+                return f"Sorry, no readable content was found at {url}."
+
+            # Limit the text to the first 2000 characters for summarization
+            prompt = f"Summarize this for a beginner:\n{text[:2000]}"
             summary = self.client.chat.completions.create(
                 model="gpt-4",
                 messages=[
@@ -176,6 +185,10 @@ class InternetAccessSkill(Skill):
                     {"role": "user", "content": prompt},
                 ]
             ).choices[0].message.content.strip()
+
+            if not summary:
+                print(f"Summarization failed for URL: {url}")  # Debug statement
+                return f"Sorry, I couldn't summarize the content at {url}."
 
             return summary
         except requests.exceptions.Timeout:
