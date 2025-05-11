@@ -8,6 +8,9 @@ import json
 from datetime import datetime
 import random
 import string
+import nltk
+from nltk.corpus import words
+nltk.download('words')
 
 
 class InternetAccessSkill(Skill):
@@ -61,7 +64,7 @@ class InternetAccessSkill(Skill):
         return f"Successfully gathered and stored knowledge on {len(topics)} topics."
 
     def expand_topics(self):
-        """Generates completely random topics for autonomous browsing."""
+        """Generates meaningful random topics for autonomous browsing using nltk."""
         try:
             # Load existing knowledge
             with open(self.knowledge_base_path, "r") as f:
@@ -70,14 +73,13 @@ class InternetAccessSkill(Skill):
             # Extract existing topics from the knowledge base
             existing_topics = {entry["topic"] for entry in knowledge}
 
-            # Generate random topics
+            # Use the NLTK words corpus to generate random topics
+            word_list = words.words()
+
+            # Generate random topics by combining real words
             def generate_random_topic():
-                # Create a random word or phrase
                 word_count = random.randint(1, 3)  # Randomly choose 1 to 3 words
-                return " ".join(
-                    "".join(random.choices(string.ascii_lowercase, k=random.randint(4, 8)))  # Random word length
-                    for _ in range(word_count)
-                )
+                return " ".join(random.choices(word_list, k=word_count))
 
             # Generate a list of random topics
             random_topics = [generate_random_topic() for _ in range(10)]
@@ -94,11 +96,19 @@ class InternetAccessSkill(Skill):
     def search(self, topic):
         """Performs a web search and returns a list of URLs."""
         try:
-            res = requests.get(f"https://html.duckduckgo.com/html/?q={topic}", headers=self.headers)
+            print(f"Performing search for topic: {topic}")  # Debug statement
+            res = requests.get(f"https://html.duckduckgo.com/html/?q={topic}", headers=self.headers, timeout=10)
             links = list(set(
                 re.findall(r'<a rel="nofollow" class="result__a" href="(https://[^"]+)', res.text)
             ))[:3]  # Limit to top 3 results
+
+            if not links:
+                print(f"No search results found for topic: {topic}")  # Debug statement
+
             return links
+        except requests.exceptions.Timeout:
+            print(f"Search timed out for topic: {topic}")
+            return []
         except Exception as e:
             print(f"Search failed for topic '{topic}': {e}")
             return []
@@ -128,6 +138,9 @@ class InternetAccessSkill(Skill):
             ).choices[0].message.content.strip()
 
             return summary
+        except requests.exceptions.Timeout:
+            print(f"Fetching URL timed out: {url}")
+            return f"Sorry, I couldn't fetch the content from the URL due to a timeout."
         except requests.exceptions.RequestException as e:
             print(f"Error fetching URL '{url}': {e}")
             return f"Sorry, I couldn't fetch the content from the URL: {e}"
