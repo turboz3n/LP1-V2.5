@@ -6,6 +6,8 @@ import re
 import os
 import json
 from datetime import datetime
+import random
+import string
 
 
 class InternetAccessSkill(Skill):
@@ -58,26 +60,35 @@ class InternetAccessSkill(Skill):
         return f"Successfully gathered and stored knowledge on {len(topics)} topics."
 
     def expand_topics(self):
-        """Dynamically expands the topics list based on knowledge gaps or trends."""
+        """Generates completely random topics for autonomous browsing."""
         try:
             # Load existing knowledge
             with open(self.knowledge_base_path, "r") as f:
                 knowledge = json.load(f)
 
-            # Analyze knowledge to find gaps or trends
+            # Extract existing topics from the knowledge base
             existing_topics = {entry["topic"] for entry in knowledge}
-            new_topics = []
 
-            # Example: Add trending topics (hardcoded for now, but could be fetched dynamically)
-            trending_topics = ["blockchain", "renewable energy", "space exploration"]
-            for topic in trending_topics:
-                if topic not in existing_topics:
-                    new_topics.append(topic)
+            # Generate random topics
+            def generate_random_topic():
+                # Create a random word or phrase
+                word_count = random.randint(1, 3)  # Randomly choose 1 to 3 words
+                return " ".join(
+                    "".join(random.choices(string.ascii_lowercase, k=random.randint(4, 8)))  # Random word length
+                    for _ in range(word_count)
+                )
 
-            return list(existing_topics) + new_topics
+            # Generate a list of random topics
+            random_topics = [generate_random_topic() for _ in range(10)]
+
+            # Filter out topics already in the knowledge base
+            new_topics = [topic for topic in random_topics if topic not in existing_topics]
+
+            # Limit the number of new topics to avoid overloading
+            return new_topics[:5]  # Fetch up to 5 new topics
         except Exception as e:
             print(f"Error expanding topics: {e}")
-            return ["artificial intelligence", "machine learning"]  # Default topics
+            return [f"random_topic_{random.randint(1, 1000)}"]  # Default fallback topic
 
     def search(self, topic):
         """Performs a web search and returns a list of URLs."""
