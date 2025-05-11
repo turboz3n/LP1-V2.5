@@ -64,7 +64,7 @@ class InternetAccessSkill(Skill):
         return f"Successfully gathered and stored knowledge on {len(topics)} topics."
 
     def expand_topics(self):
-        """Generates meaningful random topics for autonomous browsing using nltk."""
+        """Generates meaningful random topics for autonomous browsing using seed words."""
         try:
             # Load existing knowledge
             with open(self.knowledge_base_path, "r") as f:
@@ -73,13 +73,23 @@ class InternetAccessSkill(Skill):
             # Extract existing topics from the knowledge base
             existing_topics = {entry["topic"] for entry in knowledge}
 
-            # Use the NLTK words corpus to generate random topics
-            word_list = words.words()
+            # Seed lists for topic generation
+            categories = [
+                "technology", "science", "health", "environment", "education",
+                "space", "business", "artificial intelligence", "quantum computing",
+                "renewable energy", "cybersecurity", "robotics", "climate change",
+                "biotechnology", "philosophy", "ethics", "language", "artificial general intelligence"
+            ]
+            keywords = [
+                "advancements", "trends", "challenges", "future", "impact",
+                "innovations", "applications", "research", "discoveries", "solutions",
+                "ethics", "opportunities", "risks", "development", "breakthroughs",
+                "exploration", "insights", "potential", "strategies", "evolution"
+            ]
 
-            # Generate random topics by combining real words
+            # Generate random topics by combining categories and keywords
             def generate_random_topic():
-                word_count = random.randint(1, 3)  # Randomly choose 1 to 3 words
-                return " ".join(random.choices(word_list, k=word_count))
+                return f"{random.choice(categories)} {random.choice(keywords)}"
 
             # Generate a list of random topics
             random_topics = [generate_random_topic() for _ in range(10)]
@@ -162,7 +172,7 @@ class InternetAccessSkill(Skill):
     def is_url(self, text):
         """Checks if the input is a valid URL."""
         url_pattern = re.compile(
-            r'^(https?://)?'  # http:// or https:// (optional)
+            r'^(https?://)'  # http:// or https://
             r'([a-zA-Z0-9.-]+)'  # Domain name
             r'(\.[a-zA-Z]{2,})'  # Top-level domain
             r'(/[a-zA-Z0-9._~:/?#@!$&\'()*+,;=%-]*)?$'  # Path (optional)
