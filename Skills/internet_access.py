@@ -65,19 +65,22 @@ class InternetAccessSkill(Skill):
             for topic in topics:
                 print(f"Autonomously searching for topic: {topic}")  # Debug statement
                 search_results = self.search(topic)
-                for result in search_results:
-                    summary = self.summarize_url(result)
-                    if summary:
-                        knowledge.append({
-                            "topic": topic,
-                            "url": result,
-                            "summary": summary,
-                            "timestamp": datetime.now().isoformat()
-                        })
+                if search_results:
+                    for result in search_results:
+                        summary = self.summarize_url(result)
+                        if summary:
+                            knowledge.append({
+                                "topic": topic,
+                                "url": result,
+                                "summary": summary,
+                                "timestamp": datetime.now().isoformat()
+                            })
+                else:
+                    print(f"No search results found for topic: {topic}")  # Debug statement
 
             # Store the knowledge in the knowledge base
             self.store_knowledge(knowledge)
-            return f"Autonomous browsing completed. Gathered knowledge on {len(topics)} topics."
+            return f"Autonomous browsing completed. Gathered knowledge on {len(knowledge)} topics."
 
         # Fallback response
         print("Input did not match any known patterns.")  # Debug statement
@@ -113,9 +116,11 @@ class InternetAccessSkill(Skill):
 
             # Generate a list of random topics
             random_topics = [generate_random_topic() for _ in range(10)]
+            print(f"Generated topics: {random_topics}")  # Debug statement
 
             # Filter out topics already in the knowledge base
             new_topics = [topic for topic in random_topics if topic not in existing_topics]
+            print(f"Filtered topics (new): {new_topics}")  # Debug statement
 
             # Limit the number of new topics to avoid overloading
             return new_topics[:5]  # Fetch up to 5 new topics
@@ -128,9 +133,14 @@ class InternetAccessSkill(Skill):
         try:
             print(f"Performing search for topic: {topic}")  # Debug statement
             res = requests.get(f"https://html.duckduckgo.com/html/?q={topic}", headers=self.headers, timeout=10)
+            print(f"Search response status code: {res.status_code}")  # Debug statement
+            print(f"Search response content (truncated): {res.text[:500]}")  # Debug statement
+
+            # Extract links using regex
             links = list(set(
-                re.findall(r'<a rel="nofollow" class="result__a" href="(https://[^"]+)', res.text)
+                re.findall(r'<a[^>]+href="(https://[^"]+)"', res.text)
             ))[:3]  # Limit to top 3 results
+            print(f"Extracted links: {links}")  # Debug statement
 
             if not links:
                 print(f"No search results found for topic: {topic}")  # Debug statement
