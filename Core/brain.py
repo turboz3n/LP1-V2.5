@@ -112,6 +112,30 @@ class Brain:
             print(f"[Directive Classifier Error] {e}")
             return {"intent": "chat", "priority": "low", "action": "respond", "source": "user"}
 
+    def handle_goal(self, directive, user_input):
+        """
+        Handles user input classified as a 'goal' intent.
+
+        Args:
+            directive (dict): The directive object containing intent, priority, action, and source.
+            user_input (str): The original user input.
+
+        Returns:
+            str: The response generated for the goal intent.
+        """
+        # Check if the goal is user-directed or self-directed
+        if directive["source"] == "user":
+            # Execute user-directed tasks immediately
+            response = self.dynamic_fallback(directive["action"], user_input)
+            # Log the completed goal
+            self.memory.add_task(f"Completed goal: {directive['action']}")
+        else:
+            # Queue self-directed tasks for later execution
+            self.queue_goal(directive["action"])
+            response = f"Got it! I'll queue the goal: {directive['action']}"
+
+        return response
+
     def handle_input(self, user_input):
         """
         Processes user input and directs it to the appropriate functionality.
