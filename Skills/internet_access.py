@@ -30,10 +30,14 @@ class InternetAccessSkill(Skill):
 
     def handle(self, user_input, context):
         """Handles internet-related tasks based on the user's query."""
-        # Step 1: Dynamically expand topics
+        # Step 1: Check if the input is a URL
+        if self.is_url(user_input):
+            return self.summarize_url(user_input)
+
+        # Step 2: Dynamically expand topics
         topics = self.expand_topics()
 
-        # Step 2: Search and summarize for each topic
+        # Step 3: Search and summarize for each topic
         knowledge = []
         for topic in topics:
             print(f"Searching for: {topic}")
@@ -48,7 +52,7 @@ class InternetAccessSkill(Skill):
                         "timestamp": datetime.now().isoformat()
                     })
 
-        # Step 3: Store knowledge in the knowledge base
+        # Step 4: Store knowledge in the knowledge base
         self.store_knowledge(knowledge)
 
         return f"Successfully gathered and stored knowledge on {len(topics)} topics."
@@ -120,3 +124,7 @@ class InternetAccessSkill(Skill):
                 json.dump(existing_knowledge, f, indent=2)
         except Exception as e:
             print(f"Error storing knowledge: {e}")
+
+    def is_url(self, text):
+        """Checks if the input is a valid URL."""
+        return text.startswith("http://") or text.startswith("https://")
