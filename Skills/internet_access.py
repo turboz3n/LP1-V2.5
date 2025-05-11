@@ -34,6 +34,7 @@ class InternetAccessSkill(Skill):
         """Handles internet-related tasks based on the user's query."""
         # Step 1: Check if the input is a URL
         if self.is_url(user_input):
+            print(f"Detected URL: {user_input}")  # Debug statement
             return self.summarize_url(user_input)
 
         # Step 2: Dynamically expand topics
@@ -105,13 +106,19 @@ class InternetAccessSkill(Skill):
     def summarize_url(self, url):
         """Fetches and summarizes content from a URL."""
         try:
-            html = requests.get(url, timeout=10, headers=self.headers).text
+            print(f"Fetching content from URL: {url}")  # Debug statement
+            headers = {"User-Agent": "Mozilla/5.0"}
+            response = requests.get(url, timeout=10, headers=headers)
+            response.raise_for_status()  # Raise an error for bad HTTP responses
+            html = response.text
+
+            # Parse the HTML content
             soup = BeautifulSoup(html, "html.parser")
             text = soup.get_text("\n")
-            short_text = "\n".join(text.split("\n")[:80])
+            short_text = "\n".join(text.split("\n")[:80])  # Limit to the first 80 lines
 
             # Summarize with OpenAI
-            prompt = f"Summarize this for a beginner:\n{text[:2000]}"
+            prompt = f"Summarize this for a beginner:\n{text[:2000]}"  # Limit input to 2000 characters
             summary = self.client.chat.completions.create(
                 model="gpt-4",
                 messages=[
@@ -121,9 +128,12 @@ class InternetAccessSkill(Skill):
             ).choices[0].message.content.strip()
 
             return summary
+        except requests.exceptions.RequestException as e:
+            print(f"Error fetching URL '{url}': {e}")
+            return f"Sorry, I couldn't fetch the content from the URL: {e}"
         except Exception as e:
             print(f"Error summarizing URL '{url}': {e}")
-            return None
+            return f"Sorry, I couldn't summarize the URL due to an error: {e}"
 
     def store_knowledge(self, knowledge):
         """Stores gathered knowledge in the knowledge base."""
@@ -138,4 +148,10 @@ class InternetAccessSkill(Skill):
 
     def is_url(self, text):
         """Checks if the input is a valid URL."""
-        return text.startswith("http://") or text.startswith("https://")
+        url_pattern = re.compile(
+            r'^(https?://)?'  # http:// or https:// (optional)
+            r'([a-zA-Z0-9.-]+)'  # Domain name
+            r'(\.[a-zA-Z]{2,})'  # Top-level domain
+            r'(/[a-zA-Z0-9._~:/?#@!$&\'()*+,;=%-]*)?$'  # Path (optional)
+        )
+        return bool(url_pattern.match(text))
